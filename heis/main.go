@@ -2,13 +2,14 @@ package main
 
 import (
 	"./elevio"
+	"./networkModule"
 
 	"fmt"
 )
 
 func main() {
 
-	//networkModule.NetworkFunc()
+	networkModule.NetworkFunc()
 
 	numFloors := 4
 
