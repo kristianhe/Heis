@@ -72,16 +72,16 @@ func NetworkFunc() {
 	fmt.Println()
 	for {
 		select {
-		case p := <-peerUpdateCh:
+		case peerUpdate := <-peerUpdateCh:
 			fmt.Println("----------------------------")
 			fmt.Printf("Peer update:\n")
-			fmt.Printf("  Peers:    %q\n", p.Peers)
-			fmt.Printf("  New:      %q\n", p.New)
-			fmt.Printf("  Lost:     %q\n", p.Lost)
+			fmt.Printf("  Peers:    %q\n", peerUpdate.Peers)
+			fmt.Printf("  New:      %q\n", peerUpdate.New)
+			fmt.Printf("  Lost:     %q\n", peerUpdate.Lost)
 			fmt.Println("----------------------------")
 
-		case a := <-msgRx:
-			fmt.Printf("Received: %#v\n", a)
+		case messageReceived := <-msgRx:
+			fmt.Printf("Received: %#v\n", messageReceived)
 		}
 	}
 }
