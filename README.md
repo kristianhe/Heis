@@ -1,8 +1,6 @@
 # Heis
 Repository for group 43 to work on the elevator project.
 
-# Readme-files from the exercises
-
 Exercise 3: Uplink Established
 ==============================
 
