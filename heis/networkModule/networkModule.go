@@ -11,7 +11,7 @@ import (
 	"./network/peers"
 )
 
-// Message packet (containing states etc.)
+// Message format (containing states etc.)
 type Msg struct {
 	Message string
 	Iter    int
@@ -46,7 +46,7 @@ func NetworkFunc() {
 	go peers.Transmitter(15647, id, peerTxEnable)
 	go peers.Receiver(15647, peerUpdateCh)
 
-	// Local channels for sending and receiving the message packet
+	// Local channels for sending and receiving messages
 	msgTx := make(chan Msg)
 	msgRx := make(chan Msg)
 

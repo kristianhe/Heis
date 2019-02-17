@@ -11,6 +11,7 @@ func main() {
 
 	networkModule.NetworkFunc()
 
+	// This is the basic code to make the elevator run. Should be removed later...
 	numFloors := 4
 
 	elevio.Init("localhost:15657", numFloors)
