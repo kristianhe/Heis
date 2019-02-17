@@ -68,7 +68,8 @@ This new connection will behave the same way on the server-side, so you can send
 
 
 
-# Exercise 4: From Prototype to Production
+Exercise 4: From Prototype to Production
+========================================
 
 1. Don't overengineer.
 2. Always design properly.
@@ -195,8 +196,8 @@ In order to test a network module, you will have to run your code from multiple 
 *"I gathered from these exchanges that programmers have a perpetual competition to see who can claim the most things as 'simple.'"*
 
 
-# Exercise 5: Call for transport
-
+Exercise 5: Call for transport
+==============================
 
 The elevator hardware on the lab is controlled via a National Instruments PCI Digital I/O device, using the Comedi driver. An "elevator" abstraction has been created, that exposes a few functions in C that lets us use this I/O card. However, using this presents a few challenges for a project like this:
 
