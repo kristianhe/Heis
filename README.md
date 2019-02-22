@@ -265,6 +265,7 @@ You should now implement some way to control a single elevator, as a part of the
 Since you don't have any way to distribute requests yet, you should use the button presses directly. This will have to change later, so keep code quality in mind.
 
 Exercise 6 : Phoenix
+====================
 
 Create a program (in any language, on any OS) that uses the process pair technique to print the numbers 1, 2, 3, 4, etc to a terminal window. The program should create its own backup: When the primary is running, only the primary should keep counting, and the backup should do nothing. When the primary dies, the backup should become the new primary, create its own new backup, and keep counting where the dead one left off. Make sure that no numbers are skipped!
 
