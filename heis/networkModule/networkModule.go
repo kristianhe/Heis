@@ -15,6 +15,7 @@ import (
 type Msg struct {
 	Message string
 	Iter    int
+	Ack		bool
 }
 
 // TODO make a better name for this function
@@ -56,7 +57,7 @@ func NetworkFunc() {
 
 	// Send a message every second.
 	go func() {
-		helloMsg := Msg{"Hello from the one and only " + id, 0}
+		helloMsg := Msg{"Hello from " + id, 0, 0}
 		for {
 			helloMsg.Iter++
 			msgTx <- helloMsg
@@ -80,8 +81,9 @@ func NetworkFunc() {
 			fmt.Printf("  Lost:     %q\n", peerUpdate.Lost)
 			fmt.Println("----------------------------")
 
-		case messageReceived := <-msgRx:
-			fmt.Printf("Received: %#v\n", messageReceived)
+		case newMessage := <-msgRx:
+			fmt.Printf("Received: %#v\n", newMessage)
+
 		}
 	}
 }
