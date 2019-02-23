@@ -273,18 +273,18 @@ You cannot rely on the primary telling the backup when it has died (because it w
 
 You will need some form of communication between the primary and the backup. Some examples are:
 
-    Network: The simplest is to use UDP on localhost. TCP is also possible, but may be harder (since both endpoints need to be alive).
-    IPC, such as POSIX message queues: see msgget() msgsnd() and msgrcv(). With these you can create FIFO message queues.
-    Signals: Use signals to interrupt other processes (You are already familiar with some of these, such as SIGSEGV (Segfault) and SIGTERM (Ctrl+C)). There are two custom signals you can use: SIGUSR1 and SIGUSR2. See signal().
-        Note for D programmers: SIGUSR is used by the GC.
-    Files: The primary writes to a file, and the backup reads it. Either the time-stamp of the file or the contents can be used to detect if the primary is still alive.
-    Controlled shared memory: The system functions shmget() and shmat() let processes share memory.
+- Network: The simplest is to use UDP on localhost. TCP is also possible, but may be harder (since both endpoints need to be alive).
+- IPC, such as POSIX message queues: see msgget() msgsnd() and msgrcv(). With these you can create FIFO message queues.
+- Signals: Use signals to interrupt other processes (You are already familiar with some of these, such as SIGSEGV (Segfault) and - SIGTERM (Ctrl+C)). There are two custom signals you can use: SIGUSR1 and SIGUSR2. See signal().
+ - Note for D programmers: SIGUSR is used by the GC.
+- Files: The primary writes to a file, and the backup reads it. Either the time-stamp of the file or the contents can be used to detect if the primary is still alive.
+- Controlled shared memory: The system functions shmget() and shmat() let processes share memory.
 
 You will also need to spawn the backup somehow. There should be a way to spawn processes or run shell commands in the standard library of your language of choice. The name of the terminal window is OS-dependent:
 
-    Ubuntu: gnome-terminal -x ["commands"]
-    Windows: start "title" [program_name]. Note that you must specify a title
-    OSX: osascript -e 'tell app "Terminal" to do script ["terminal command"]'
+- Ubuntu: gnome-terminal -x ["commands"]
+- Windows: start "title" [program_name]. Note that you must specify a title
+- OSX: osascript -e 'tell app "Terminal" to do script ["terminal command"]'
 
 (Linux tip: You can prevent a spawned terminal window from automatically closing by going to Edit -> Profile Preferences -> Title and Command -> When command exits. Windows tip: Use start "title" call [program_name])
 
