@@ -305,10 +305,10 @@ Exercise 7 : Backward error recovery
 This is the first of a two-part exercise: This time we will look at one way of doing backward error recovery, and next time we will modify this code to use forward error recovery instead. Since we will be needing a rather unique language feature of Ada for our forward error recovery solution, we will be using Ada for both parts, so it is easier to see the similarities and differences between the two approaches.
 Practical information.
 
-    Have a look at Intro to Ada
-    Use the Ada Reference Manual if you need to look up something.
-    Compile your program using gnatmake.
-    The code you are completing can be found here.
+- Have a look at Intro to Ada
+- Use the Ada Reference Manual if you need to look up something.
+- Compile your program using gnatmake.
+- The code you are completing can be found here.
 
 Desired functionality:
 
@@ -317,7 +317,7 @@ Create the transaction work function
 
 The "work" the participants are doing is adding 10 to a number. Unoriginal, perhaps, but we can use random numbers to have it simulate work that either success or fails. We will call this function Unreliable_Slow_Add.
 
-    A random number generator Gen is defined and seeded for you. Call Random(Gen) to get a random number between 0.0 and 1.0. Compare it with the Error_Rate, and have the function either perform:
+ A random number generator Gen is defined and seeded for you. Call Random(Gen) to get a random number between 0.0 and 1.0. Compare it with the Error_Rate, and have the function either perform:
         The intended behaviour: Most of the time, the addition takes up to 4-ish seconds. Use delay Duration(d) (where d is a floating-point number) to pause execution for d seconds (You can use Random(Gen) multiplied with a constant as the value for d). Then, add 10 to x and return the value.
         The faulty behaviour: The rest of the time, the operation takes significantly less time (say, up to half a second), but raises an exception instead. A Count_Failed exception has been defined for you. (Note: Ada uses raise, not throw)
 
