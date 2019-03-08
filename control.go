@@ -35,7 +35,8 @@ func GoDown() {
 }
 
 func DirUp() {
-	elevio
+	elevio.ClearBit(elevio.MOTORDIR)
+	states.SetDir(utilities.UP)
 }
 
 
