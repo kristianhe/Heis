@@ -2,11 +2,11 @@
 Repository for group 43 to work on the elevator project.
 
 ## Module overview
-State machine - (description here)
-Fault tolerance - (description here)
-Elevaluator - (description here)
-Network - (description here)
-Elevio - (description here)
+State machine - (description here)  
+Fault tolerance - (description here)  
+Elevaluator - (description here)  
+Network - (description here)  
+Elevio - (description here)  
 
 Exercise 4: From Prototype to Production
 ========================================
