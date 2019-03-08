@@ -7,6 +7,7 @@ Fault tolerance - (description here)
 Elevaluator - (description here)  
 Network - (description here)  
 Elevio - (description here)  
+Control - (description here)  
 
 Exercise 4: From Prototype to Production
 ========================================
