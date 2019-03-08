@@ -5,11 +5,20 @@ import (
     "sync"
 )
 
+// Naming
+var master bool = false
 var mutex sync.Mutex
 
+// Functions
 func IsMaster() bool {
     mutex.Lock()
     defer mutex.Unlock()
 
-    return false                        //Eventuelt en bool kalt master som er false
+    return master
+}
+
+func SetMaster(local_master bool) {
+    mutex.Lock()
+    master = local_master
+    defer mutex.Unlock()
 }
