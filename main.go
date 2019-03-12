@@ -1,14 +1,6 @@
 package main
 
-import (
-	"./elevio"
-	"./network"
-	"./stateMachine"
-	"./spawn"
-
-	"fmt"
-	"flag"
-)
+import "flag"
 
 func main() {
 
@@ -18,11 +10,15 @@ func main() {
 	flag.Parse()
 
 	stateMachine.SetMaster(flag_IsMaster)
-	
+
 	if stateMachine.IsMaster() {
+
 		spawn.InitMaster()
+
 	} else if !stateMachine.IsMaster() {
+
 		spawn.InitBackup()
+
 	}
 
 }

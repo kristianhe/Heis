@@ -1,61 +1,160 @@
 package network
 
 import (
-	"flag"
 	"fmt"
-	"os"
+	"net"
 	"time"
-
-	"./oldNetwork/bcast"
-	"./oldNetwork/localip"
-	"./oldNetwork/peers"
 )
 
-// Message packet (containing states etc.)
-type Msg struct {
-	Message string
-	Iter    int
-	Ack		bool
+// Default ports
+var masterPort int = 30012
+var slavePort int = 30013
+var backupMasterPort int = 30014
+var backupSlavePort int = 30015
+
+// Standard message formats used in the network communication
+type ID string
+
+type SimpleMessage struct {
+	Address ID
+	Data    []byte
 }
 
-func ListenToClients() {
-	addr, _ := net.ResolveUDPAddr("udp", "127.0.0.1:12000")
-	IsPrimary := false
-	conn, err := net.ListenUDP("udp", addr)
+type DetailedMessage struct {
+	Category  int // Message category ?? heller en enum?
+	Heartbeat Heartbeat
+	Status    Status
+	Order     Order
+	OrderList OrderList
+}
+
+type Status struct {
+	Elevator  ID
+	State     int
+	Floor     int
+	Direction int
+	Priority  int // Bruke Priority-structen her?
+}
+
+type Order struct {
+	Category  string // Message category ??
+	Elevator  ID
+	Direction int
+	Floor     int
+	Button    int
+	time      time.Time
+}
+
+type OrderList struct {
+	Elevator ID
+	List     []Order
+}
+
+type Floor struct {
+	Current int
+	Status  int // Moving, idle etc. Bruke enum her i stedet for int?
+}
+
+type Priority struct {
+	Elevator ID
+	Queue    int // Place in queue
+}
+
+type Heartbeat struct {
+	Count int
+}
+
+func createSocket(port int) *net.UDPConn {
+
+	localAddr, err := net.ResolveUDPAddr("udp", fmt.Sprintf(":%d", port))
 	if err != nil {
-		fmt.Println("Error: ", conn, err)
+		fmt.Println("Error: ", localAddr, err)
+	}
+	socket, err := net.ListenUDP("udp", localAddr)
+	if err != nil {
+		fmt.Println("Error: ", localAddr, err)
 	}
 
-	//backup
-	var counter uint64
-	buffer := make([]byte, 1024)
-	for !(IsPrimary) {
-		conn.SetReadDeadline(time.Now().Add(2 * time.Second)) //Make sure it doesn't look too long
-		n, _, err := conn.ReadFromUDP(buffer)
-		if err != nil {
-			IsPrimary = true
-		} else {
-			counter = binary.BigEndian.Uint64(buffer[:n]) //Read from buffer and convert to int
+	return socket
+}
+
+func getID(sender *net.UDPAddr) ID { return ID(sender.IP.String()) }
+
+func setDeadline(socket *net.UDPConn, t time.Time) {
+
+	err := socket.SetReadDeadline(t.Add(time.Millisecond * 2000)) // Creates a deadline for just this socket, not all
+	if err != nil && !err.(net.Error).Timeout() {
+		fmt.Println("Error: ", err)
+	}
+
+}
+
+// TODO det er noe muffins med denne funksjonen.... får merkelige errormeldinger...
+/*
+func listenToSlaves(socket *net.UDPConn, received_information chan SimpleMessage, abort chan bool) {
+
+	for {
+		select {
+			case <-abort:
+							socket.Close()
+							return
+			default:
+							setDeadline(socket, time.Now())	// Deadline for the listener
+							data := make([]byte, 2048)
+							receivedData, sender, err := socket.ReadFromUDP(data)
+							if err == nil {
+
+								received_information <- SimpleMessage{getID(sender), data[:receivedData]}
+
+							} else if err != nil && !err.(net.Error).Timeout() {
+
+								fmt.Println("Error: ", err)
+
+							}
+							time.Sleep(time.Millisecond * 10)
+
 		}
 	}
-	conn.Close()
 
+}
+*/
+
+// Siste argument er en slags sjekk, vet ikke om vi trenger den?
+func broadcast(socket *net.UDPConn, destination int, information_to_send chan SimpleMessage, abort chan bool, some_error_check bool) {
+	return
+}
+
+/*
+// (MasterWorker)
+func Warden(read_from_slave chan SimpleMessage, write_to_slave chan SimpleMessage, abort chan bool) {
+	return
+}
+
+// (ClientWorker)
+func Coordinator(read_from_master chan SimpleMessage, write_to_master chan SimpleMessage, abort chan bool) {
+	return
+}
+*/
+
+// (MasterBackupWorker)
+func BackupWarden(read_from_slave chan SimpleMessage, write_to_slave chan SimpleMessage, abort chan bool) {
+
+	socket := createSocket(backupMasterPort)
+	broadcast(socket, backupSlavePort, write_to_slave, abort, true)
+	socket.Close()
 
 }
 
+// (ClientBackupWorker) Continously listens to check if the master alive
+func BackupCoordinator(read_from_master chan SimpleMessage, write_to_master chan SimpleMessage, abort chan bool) {
 
+	socket := createSocket(backupSlavePort)
+	//listenToSlaves(socket, read_from_master, abort)
+	socket.Close()
 
+}
 
-
-
-
-
-
-
-
-
-
-
+/*
 
 // TODO make a better name for this function
 func NetworkFunc() {
@@ -126,3 +225,4 @@ func NetworkFunc() {
 		}
 	}
 }
+*/
