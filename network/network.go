@@ -18,6 +18,45 @@ type Msg struct {
 	Ack		bool
 }
 
+func ListenToClients() {
+	addr, _ := net.ResolveUDPAddr("udp", "127.0.0.1:12000")
+	IsPrimary := false
+	conn, err := net.ListenUDP("udp", addr)
+	if err != nil {
+		fmt.Println("Error: ", conn, err)
+	}
+
+	//backup
+	var counter uint64
+	buffer := make([]byte, 1024)
+	for !(IsPrimary) {
+		conn.SetReadDeadline(time.Now().Add(2 * time.Second)) //Make sure it doesn't look too long
+		n, _, err := conn.ReadFromUDP(buffer)
+		if err != nil {
+			IsPrimary = true
+		} else {
+			counter = binary.BigEndian.Uint64(buffer[:n]) //Read from buffer and convert to int
+		}
+	}
+	conn.Close()
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // TODO make a better name for this function
 func NetworkFunc() {
 
