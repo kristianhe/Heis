@@ -3,11 +3,12 @@ Repository for group 43 to work on the elevator project.
 
 ## Module overview
 State machine - (description here)  
-Fault tolerance - (description here)  
+Fault tolerance - Incorporated into individual modules 
 Elevaluator - (description here)  
 Network - (description here)  
-Elevio - (description here)  
+Elevio - Signal processing to and from the elevator hardware 
 Control - (description here)  
+Tools - All constant values and data structures used by most modules
 
 Exercise 4: From Prototype to Production
 ========================================
