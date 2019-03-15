@@ -40,7 +40,7 @@ func setDeadline(socket *net.UDPConn, t time.Time) {
 	if err != nil && !err.(net.Error).Timeout() 	{ fmt.Println("Error: ", err) }
 }
 
-func listen(socket *net.UDPConn, incomming_information chan common.SimpleMessage, abort chan bool) {
+func listen(socket *net.UDPConn, incomming_information chan formats.SimpleMessage, abort chan bool) {
 	for {
 		select {
 			case <-abort:
@@ -51,7 +51,7 @@ func listen(socket *net.UDPConn, incomming_information chan common.SimpleMessage
 							data := make([]byte, 2048)
 							receivedData, sender, err := socket.ReadFromUDP(data)
 							if err == nil {
-								incomming_information <- common.SimpleMessage{GetID(sender), data[:receivedData]}
+								incomming_information <- formats.SimpleMessage{GetID(sender), data[:receivedData]}
 							} else if err != nil && !err.(net.Error).Timeout() {
 								fmt.Println("Error: ", err)
 							}
@@ -61,15 +61,15 @@ func listen(socket *net.UDPConn, incomming_information chan common.SimpleMessage
 }
 
 // TODO Siste argument er en slags sjekk. Finn ut hva denne gjør og lag en bra navn
-func broadcast(socket *net.UDPConn, destination int, outgoing_information chan common.SimpleMessage, abort chan bool, isLocal bool) {
+func broadcast(socket *net.UDPConn, destination int, outgoing_information chan formats.SimpleMessage, abort chan bool, isLocal bool) {
 	address := GetIP()
 	if !isLocal 	{ address = "255.255.255.255" }
 	bcast_addr := fmt.Sprintf("%s:%d", address, destination)
 	remote_addr := net.ResolveUDPAddr("udp", bcast_addr)
 	if err != nil	{ fmt.Println("Error: ", err) }
 	for {
-		common.SimpleMessage := <-outgoing_information
-		_, err := socket.WriteToUDP(common.SimpleMessage.Data, remote_addr)
+		formats.SimpleMessage := <-outgoing_information
+		_, err := socket.WriteToUDP(formats.SimpleMessage.Data, remote_addr)
 		if err != nil {
 			if isLocal {
 				// Show error
@@ -86,7 +86,7 @@ func broadcast(socket *net.UDPConn, destination int, outgoing_information chan c
 }
 
 // [Description here]
-func Warden(read_from_slave chan common.SimpleMessage, write_to_slave chan common.SimpleMessage, abort chan bool) {
+func Warden(read_from_slave chan formats.SimpleMessage, write_to_slave chan formats.SimpleMessage, abort chan bool) {
 	socket := createSocket(masterPort)
 	go listen(socket, read_from_slave, abort)
 	broadcast(socket, slavePort, write_to_slave, abort, false)
@@ -94,7 +94,7 @@ func Warden(read_from_slave chan common.SimpleMessage, write_to_slave chan commo
 }
 
 // [Description here]
-func Coordinator(read_from_master chan common.SimpleMessage, write_to_master chan common.SimpleMessage, abort chan bool) {
+func Coordinator(read_from_master chan formats.SimpleMessage, write_to_master chan formats.SimpleMessage, abort chan bool) {
 	socket := createSocket(slavePort)
 	go listen(socket, read_from_master, abort)
 	broadcast(socket, masterPort, write_to_master, abort, false)
@@ -102,14 +102,14 @@ func Coordinator(read_from_master chan common.SimpleMessage, write_to_master cha
 }
 
 // [Description here]
-func BackupWarden(read_from_slave chan common.SimpleMessage, write_to_slave chan common.SimpleMessage, abort chan bool) {
+func BackupWarden(read_from_slave chan formats.SimpleMessage, write_to_slave chan formats.SimpleMessage, abort chan bool) {
 	socket := createSocket(backupMasterPort)
 	broadcast(socket, backupSlavePort, write_to_slave, abort, true)
 	socket.Close()
 }
 
 // Continously listens to check if the master is alive
-func BackupCoordinator(read_from_master chan common.SimpleMessage, write_to_master chan common.SimpleMessage, abort chan bool) {
+func BackupCoordinator(read_from_master chan formats.SimpleMessage, write_to_master chan formats.SimpleMessage, abort chan bool) {
 	socket := createSocket(backupSlavePort)
 	listen(socket, read_from_master, abort)
 	socket.Close()
