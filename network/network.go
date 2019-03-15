@@ -21,7 +21,7 @@ type SimpleMessage struct {
 }
 
 type DetailedMessage struct {
-	Category  int 		// Message category ?? heller en enum?
+	Category  int // Message category ?? heller en enum?
 	Heartbeat Heartbeat
 	Status    Status
 	Order     Order
@@ -33,11 +33,11 @@ type Status struct {
 	State     int
 	Floor     int
 	Direction int
-	Priority  int 		// Bruke Priority-structen her?
+	Priority  int // Bruke Priority-structen her?
 }
 
 type Order struct {
-	Category  string 	// Message category ??
+	Category  string // Message category ??
 	Elevator  ID
 	Direction int
 	Floor     int
@@ -52,12 +52,12 @@ type OrderList struct {
 
 type Floor struct {
 	Current int
-	Status  int				// Moving, idle etc. Bruke enum her i stedet for int?
+	Status  int // Moving, idle etc. Bruke enum her i stedet for int?
 }
 
 type Priority struct {
 	Elevator ID
-	Queue    int 			// Place in queue
+	Queue    int // Place in queue
 }
 
 type Heartbeat struct {
@@ -72,9 +72,9 @@ func createSocket(port int) *net.UDPConn {
 	return socket
 }
 
-func getID(sender *net.UDPAddr) ID	{ return ID(sender.IP.String()) }
+func GetID(sender *net.UDPAddr) ID	{ return ID(sender.IP.String()) }
 
-func getIP() ID {
+func GetIP() ID {
 	interfaceAddrs, err := net.InterfaceAddrs()
 	if err != nil	{ return "" }
 	for _, interfaceAddrs := range interfaceAddrs {
@@ -100,7 +100,7 @@ func listen(socket *net.UDPConn, incomming_information chan SimpleMessage, abort
 							data := make([]byte, 2048)
 							receivedData, sender, err := socket.ReadFromUDP(data)
 							if err == nil {
-								incomming_information <- SimpleMessage{getID(sender), data[:receivedData]}
+								incomming_information <- SimpleMessage{GetID(sender), data[:receivedData]}
 							} else if err != nil && !err.(net.Error).Timeout() {
 								fmt.Println("Error: ", err)
 							}
@@ -109,12 +109,10 @@ func listen(socket *net.UDPConn, incomming_information chan SimpleMessage, abort
 	}
 }
 
-
-
-// Siste argument er en slags sjekk, vet ikke om vi trenger den?
-func broadcast(socket *net.UDPConn, destination int, outgoing_information chan SimpleMessage, abort chan bool, some_error_check bool) {
-	address := getIP()
-	if !some_error_check 	{ address = "255.255.255.255" }
+// TODO Siste argument er en slags sjekk. Finn ut hva denne gjør og lag en bra navn
+func broadcast(socket *net.UDPConn, destination int, outgoing_information chan SimpleMessage, abort chan bool, isLocal bool) {
+	address := GetIP()
+	if !isLocal 	{ address = "255.255.255.255" }
 	bcast_addr := fmt.Sprintf("%s:%d", address, destination)
 	remote_addr := net.ResolveUDPAddr("udp", bcast_addr)
 	if err != nil	{ fmt.Println("Error: ", err) }
@@ -122,13 +120,13 @@ func broadcast(socket *net.UDPConn, destination int, outgoing_information chan S
 		SimpleMessage := <-outgoing_information
 		_, err := socket.WriteToUDP(SimpleMessage.Data, remote_addr)
 		if err != nil {
-			if some_error_check {
+			if isLocal {
 				// Show error
 				fmt.Println("Error: ", err)
 				// Wait
 				time.Sleep(time.Second * 1)
 				// Reconnect
-				broadcast(socket, destination, outgoing_information, abort, some_error_check)
+				broadcast(socket, destination, outgoing_information, abort, isLocal)
 				break
 			}
 			time.Sleep(time.Millisecond * 10)
@@ -159,89 +157,9 @@ func BackupWarden(read_from_slave chan SimpleMessage, write_to_slave chan Simple
 	socket.Close()
 }
 
-// Continously listens to check if the master alive
+// Continously listens to check if the master is alive
 func BackupCoordinator(read_from_master chan SimpleMessage, write_to_master chan SimpleMessage, abort chan bool) {
 	socket := createSocket(backupSlavePort)
 	listen(socket, read_from_master, abort)
 	socket.Close()
 }
-
-
-
-
-
-
-
-
-/*
-
-// TODO make a better name for this function
-func NetworkFunc() {
-
-	// Can set personal ID using two alternatives,
-	// Alternative 1:
-	// Choose by writing `go run main.go -id=your_id`
-	var id string
-	flag.StringVar(&id, "id", "", "id of this peer")
-	flag.Parse()
-
-	// Alternative 2:
-	// Preset by local IP address + process ID
-	if id == "" {
-		localIP, err := localip.LocalIP()
-		if err != nil {
-			fmt.Println(err)
-			localIP = "DISCONNECTED"
-		}
-		id = fmt.Sprintf("peer-%s-%d", localIP, os.Getpid())
-	}
-
-	// Channels for peer status
-	peerUpdateCh := make(chan peers.PeerUpdate) // Peer status (who is currently active)
-	peerTxEnable := make(chan bool)             // Enable/disable transmission
-
-	// Start corresponding goroutines
-	go peers.Transmitter(15647, id, peerTxEnable)
-	go peers.Receiver(15647, peerUpdateCh)
-
-	// Local channels for sending and receiving the message packet
-	msgTx := make(chan Msg)
-	msgRx := make(chan Msg)
-
-	// Start broadcasting
-	go bcast.Transmitter(16569, msgTx)
-	go bcast.Receiver(16569, msgRx)
-
-	// Send a message every second.
-	go func() {
-		helloMsg := Msg{"Hello from " + id, 0, 0}
-		for {
-			helloMsg.Iter++
-			msgTx <- helloMsg
-			time.Sleep(1 * time.Second)
-		}
-	}()
-
-	// While true
-	fmt.Println()
-	fmt.Println("----------------------")
-	fmt.Println("NETWORK UP AND RUNNING")
-	fmt.Println("----------------------")
-	fmt.Println()
-	for {
-		select {
-		case peerUpdate := <-peerUpdateCh:
-			fmt.Println("----------------------------")
-			fmt.Printf("Peer update:\n")
-			fmt.Printf("  Peers:    %q\n", peerUpdate.Peers)
-			fmt.Printf("  New:      %q\n", peerUpdate.New)
-			fmt.Printf("  Lost:     %q\n", peerUpdate.Lost)
-			fmt.Println("----------------------------")
-
-		case newMessage := <-msgRx:
-			fmt.Printf("Received: %#v\n", newMessage)
-
-		}
-	}
-}
-*/
