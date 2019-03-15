@@ -8,15 +8,15 @@ import (
 )
 
 // Backup channels
-var backupChannel_write = make(chan SimpleMessage)
-var backupChannel_read = make(chan SimpleMessage)
+var backupChannel_write = make(chan formats.SimpleMessage)
+var backupChannel_read = make(chan formats.SimpleMessage)
 var backupChannel_abort = make(chan bool)
 
 // Master Channels
-var channel_write = make(chan SimpleMessage)
-var channel_read = make(chan SimpleMessage)
-var orderChannel = make(chan Order)
-var floorChannel = make(chan Floor)
+var channel_write = make(chan formats.SimpleMessage)
+var channel_read = make(chan formats.SimpleMessage)
+var orderChannel = make(chan formats.Order)
+var floorChannel = make(chan formats.Floor)
 
 func initBackup() {
 
@@ -32,16 +32,12 @@ func initBackup() {
 }
 
 func initMaster() {
-
+	return
 }
 
 func generateBackup() {
-
 	spawnCmd, err := exec.Command("gnome-terminal", "-x", "go", "run", "ex6.go")
 	spawnCmd.Run()
-	if err != nil {
-		fmt.Println("Error: ", spawnCmd, err)
-	}
+	if err != nil	{ fmt.Println("Error: ", spawnCmd, err) }
 	fmt.Println("A new backup has been spawned.")
-
 }

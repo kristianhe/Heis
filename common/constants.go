@@ -1,3 +1,5 @@
+package common
+
 const(
 DEFAULT_IP			= "127.0.0.1"
 ON      			= 1
@@ -13,7 +15,7 @@ STOP 				= 0
 UP   				= 2
 DOWN 				= 1
 FLOORS  			= 4
-BUTTONS 			= 3 
+BUTTONS 			= 3
 
 FLOOR_FIRST  		= 0
 FLOOR_SECOND 		= 1

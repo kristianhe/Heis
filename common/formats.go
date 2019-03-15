@@ -1,4 +1,9 @@
-// Standard message formats used in the network communication
+package common
+
+import (
+	"time"
+)
+
 type ID string
 
 type SimpleMessage struct {
@@ -49,60 +54,3 @@ type Priority struct {
 type Heartbeat struct {
 	Count int
 }
-
-
-//______________________________________________
-// From KOK
-//______________________________________________
-
-/*
-
-//Types 
-type ID string
-
-type Message struct {
-Category 	int
-Heartbeat 	Heartbeat
-Status 		Status
-Order		Order
-Orders 		Orders
-}
-
-//Structs
-
-type Heartbeat struct {
-Counter int
-}
-type Status struct {
-Elevator 	ID
-State 		int
-Floor 		int
-Direction 	int
-Priority	int
-Time		time.Time
-}
-type Orders struct{
-Elevator 	ID
-List [] 	Order 
-}
-type Priority struct{
-Elevator 	ID
-Count		int
-}
-type Order struct {
-Elevator 	ID 
-Category	int 
-Direction	int
-Floor 		int  
-Button      int
-Time		time.Time
-}
-type Floor struct {
-Current int
-Status int
-}
-type Packet struct {
-Address 	ID 
-Data    	[]byte
-}
-*/
