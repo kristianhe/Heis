@@ -96,13 +96,13 @@ func SetButtonLamp(button, floor, lamp int) int {
 
 	//Turn on lamp
 	if lamp == utilities.ON {
-		hardware.SetBit(lamp_matrix[floor][button])
+		elevio.SetBit(lamp_matrix[floor][button])
 		return utilities.TRUE
 	}
 
 	//Turn off lamp
 	if lamp == utilities.OFF {
-		hardware.ClearBit(lamp_matrix[floor][button])
+		elevio.ClearBit(lamp_matrix[floor][button])
 		return utilities.TRUE
 	}
 
@@ -124,20 +124,20 @@ func SetFloorIndicator(floor int) int {
 	switch floor {
 
 	case utilities.FLOOR_FIRST:
-		hardware.ClearBit(hardware.LIGHT_FLOOR_IND1)
-		hardware.ClearBit(hardware.LIGHT_FLOOR_IND2)
+		elevio.ClearBit(elevio.LIGHT_FLOOR_IND1)
+		elevio.ClearBit(elevio.LIGHT_FLOOR_IND2)
 		return utilities.TRUE
 	case utilities.FLOOR_SECOND:
-		hardware.ClearBit(hardware.LIGHT_FLOOR_IND1)
-		hardware.SetBit(hardware.LIGHT_FLOOR_IND2)
+		elevio.ClearBit(elevio.LIGHT_FLOOR_IND1)
+		elevio.SetBit(elevio.LIGHT_FLOOR_IND2)
 		return utilities.TRUE
 	case utilities.FLOOR_THIRD:
-		hardware.SetBit(hardware.LIGHT_FLOOR_IND1)
-		hardware.ClearBit(hardware.LIGHT_FLOOR_IND2)
+		elevio.SetBit(elevio.LIGHT_FLOOR_IND1)
+		elevio.ClearBit(elevio.LIGHT_FLOOR_IND2)
 		return utilities.TRUE
 	case utilities.FLOOR_LAST:
-		hardware.SetBit(hardware.LIGHT_FLOOR_IND1)
-		hardware.SetBit(hardware.LIGHT_FLOOR_IND2)
+		elevio.SetBit(elevio.LIGHT_FLOOR_IND1)
+		elevio.SetBit(elevio.LIGHT_FLOOR_IND2)
 		return utilities.TRUE
 
 	}
@@ -147,19 +147,19 @@ func SetFloorIndicator(floor int) int {
 
 func SetDoorLamp(lamp int) {
 	if lamp == utilities.ON {
-		hardware.SetBit(hardware.LIGHT_DOOR_OPEN)
+		elevio.SetBit(elevio.LIGHT_DOOR_OPEN)
 	}
 	if lamp == utilities.OFF {
-		hardware.ClearBit(hardware.LIGHT_DOOR_OPEN)
+		elevio.ClearBit(elevio.LIGHT_DOOR_OPEN)
 	}
 }
 
 func SetStopLamp(lamp int) {
 	if lamp == utilities.ON {
-		hardware.SetBit(hardware.LIGHT_STOP)
+		elevio.SetBit(elevio.LIGHT_STOP)
 	}
 	if lamp == utilities.OFF {
-		hardware.ClearBit(hardware.LIGHT_STOP)
+		elevio.ClearBit(elevio.LIGHT_STOP)
 	}
 }
 
@@ -183,7 +183,7 @@ func GetButtonSignal(button, floor int) int {
 		return utilities.INVALID
 	}
 
-	if hardware.ReadBit(button_matrix[floor][button]) == utilities.TRUE {
+	if elevio.ReadBit(button_matrix[floor][button]) == utilities.TRUE {
 		return utilities.TRUE
 	}
 
@@ -193,19 +193,19 @@ func GetButtonSignal(button, floor int) int {
 func GetFloorSignal() int {
 
 	//Check all floors
-	if hardware.ReadBit(hardware.SENSOR_FLOOR1) == utilities.TRUE {
+	if elevio.ReadBit(elevio.SENSOR_FLOOR1) == utilities.TRUE {
 		return utilities.FLOOR_FIRST
 	}
 
-	if hardware.ReadBit(hardware.SENSOR_FLOOR2) == utilities.TRUE {
+	if elevio.ReadBit(elevio.SENSOR_FLOOR2) == utilities.TRUE {
 		return utilities.FLOOR_SECOND
 	}
 
-	if hardware.ReadBit(hardware.SENSOR_FLOOR3) == utilities.TRUE {
+	if elevio.ReadBit(elevio.SENSOR_FLOOR3) == utilities.TRUE {
 		return utilities.FLOOR_THIRD
 	}
 
-	if hardware.ReadBit(hardware.SENSOR_FLOOR4) == utilities.TRUE {
+	if elevio.ReadBit(elevio.SENSOR_FLOOR4) == utilities.TRUE {
 		return utilities.FLOOR_LAST
 	}
 
@@ -216,10 +216,10 @@ func GetFloorSignal() int {
 
 //Returns true if the stop button is pressed
 func GetStopSignal() int {
-	return hardware.ReadBit(hardware.STOP)
+	return elevio.ReadBit(elevio.STOP)
 }
 
 //Returns true if we have a obstruction
 func GetObstruction() int {
-	return hardware.ReadBit(hardware.OBSTRUCTION)
+	return elevio.ReadBit(elevio.OBSTRUCTION)
 }
