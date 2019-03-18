@@ -1,9 +1,9 @@
 package stateMachine
 
 import (
-	"../common"
-
+	"fmt"
 	"sync"
+	//"../common" // Denne bare fjernes når jeg lagrer filen...?
 )
 
 var mutex sync.Mutex
@@ -24,7 +24,9 @@ func IsMaster() bool {
 func IsConnected() bool {
 	mutex.Lock()
 	defer mutex.Unlock()
- 	if connection == constants.CONNECTED { return true }
+	if connection == constants.CONNECTED {
+		return true
+	}
 	return false
 }
 
@@ -60,18 +62,18 @@ func GetConnectedIp() int {
 
 func PrintState() string {
 	switch state {
-		case constants.STATE_SPAWN
-			return "spawn"
-		case constants.STATE_IDLE
-			return "idle"
-		case constants.STATE_RUNNING
-			return "running"
-		case constants.STATE_EMERGENCY
-			return "emergency"
-		case constants.STATE_DOOR_OPEN
-			return "door open"
-		case constants.STATE_DOOR_CLOSED
-			return "door closed"
+	case constants.STATE_SPAWN:
+		return "spawn"
+	case constants.STATE_IDLE:
+		return "idle"
+	case constants.STATE_RUNNING:
+		return "running"
+	case constants.STATE_EMERGENCY:
+		return "emergency"
+	case constants.STATE_DOOR_OPEN:
+		return "door open"
+	case constants.STATE_DOOR_CLOSED:
+		return "door closed"
 	}
 	return "invalid"
 }
@@ -109,7 +111,7 @@ func SetFloor(desiredFloor int) {
 	}
 }
 
-func SetDirection(desiredDirection) int) {
+func SetDirection(desiredDirection int) {
 	mutex.Lock()
 	defer mutex.Unlock()
 	if direction != desiredDirection {
@@ -118,7 +120,7 @@ func SetDirection(desiredDirection) int) {
 	}
 }
 
-func SetPriority(desiredPriority) int) {
+func SetPriority(desiredPriority int) {
 	mutex.Lock()
 	defer mutex.Unlock()
 	if priority != desiredPriority {
@@ -127,7 +129,7 @@ func SetPriority(desiredPriority) int) {
 	}
 }
 
-func SetConnectedIp(desiredConnectedIp) int) {
+func SetConnectedIp(desiredConnectedIp int) {
 	mutex.Lock()
 	defer mutex.Unlock()
 	if connectedIp != desiredConnectedIp {

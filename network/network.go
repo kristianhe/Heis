@@ -2,7 +2,6 @@ package network
 
 import (
 	"../common"
-
 	"fmt"
 	"net"
 	"time"
@@ -109,6 +108,7 @@ func BackupWarden(read_from_slave chan formats.SimpleMessage, write_to_slave cha
 }
 
 // Continously listens to check if the master is alive
+// TODO kan fjerne argument nr 2? Det brukes ikke
 func BackupCoordinator(read_from_master chan formats.SimpleMessage, write_to_master chan formats.SimpleMessage, abort chan bool) {
 	socket := createSocket(backupSlavePort)
 	listen(socket, read_from_master, abort)

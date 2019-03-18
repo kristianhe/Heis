@@ -9,7 +9,6 @@ import (
 	"math"
 	"sync"
 	"time"
-
 )
 
 //Variables
@@ -125,7 +124,7 @@ func PrioritizeOrder(order *tools.Order) {
 		priority.Count += PrioritizeFloor(states.GetFloor(), copy.Floor)
 		priority.Count += PrioritizeDirection(states.GetState(), states.GetDirection(), copy.Direction)
 		if(states.GetState() == tools.STATE_EMERGENCY){
-			priority.Count -= 20 
+			priority.Count -= 20
 		}
 		//Add priority
 		priorities = append(priorities, priority)
@@ -140,7 +139,7 @@ func PrioritizeOrder(order *tools.Order) {
 				priority.Count += PrioritizeFloor(elevators[index].Floor, copy.Floor)
 				priority.Count += PrioritizeDirection(elevators[index].State, elevators[index].Direction, copy.Direction)
 				if(elevators[index].State == tools.STATE_EMERGENCY){
-					priority.Count -= 20 
+					priority.Count -= 20
 				}
 				//Add priority
 				priorities = append(priorities, priority)
@@ -159,7 +158,7 @@ func PrioritizeOrder(order *tools.Order) {
 				} else if priorities[index].Count == priority.Count {
 					//Compare
 					if priorities[index].Elevator > priority.Elevator {
-						//Change elevator 
+						//Change elevator
 						priority.Elevator = priorities[index].Elevator
 						priority.Count = priorities[index].Count
 					}
@@ -177,7 +176,7 @@ func PrioritizeOrder(order *tools.Order) {
 
 func InsertOrder(order tools.Order) {
 	//Check if it is a order pushed inside or the correct direction outside
-	if (order.Elevator == network.GetMachineID() && order.Category == tools.BUTTON_INSIDE) || 
+	if (order.Elevator == network.GetMachineID() && order.Category == tools.BUTTON_INSIDE) ||
 		(order.Category == tools.BUTTON_OUTSIDE) {driver.SetButtonLamp(order.Button, order.Floor, tools.ON)
 	}
 	//Add order
@@ -294,7 +293,7 @@ func CheckOrdersCompleted(channel_write chan tools.Packet) {
 				//Check if we are on the same floor as the order
 				if local_orders[index].Floor == states.GetFloor() {
 					//Check if it is a order pushed inside or the correct direction outside
-					if (local_orders[index].Elevator == network.GetMachineID()) && (local_orders[index].Category == tools.BUTTON_INSIDE) || (local_orders[index].Category == tools.BUTTON_OUTSIDE 
+					if (local_orders[index].Elevator == network.GetMachineID()) && (local_orders[index].Category == tools.BUTTON_INSIDE) || (local_orders[index].Category == tools.BUTTON_OUTSIDE
 						&& local_orders[index].Direction == states.GetDirection()) {InitCompleteOrder(channel_write, local_orders[index])
 						//Prevent panic
 						break
@@ -471,4 +470,3 @@ func PrintPriorities(local_priorities []tools.Priority) {
 		PrintPriority(local_priorities[index])
 	}
 }
-
