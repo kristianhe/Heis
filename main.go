@@ -9,12 +9,12 @@ import (
 
 func main() {
 
-	flag_IsMaster := stateMachine.IsMaster()
+	flag_isMaster := stateMachine.IsMaster()
 
-	flag.BoolVar(&flag_IsMaster, "master", false, "X")
+	flag.BoolVar(&flag_isMaster, "master", false, "X??")
 	flag.Parse()
 
-	stateMachine.SetMaster(flag_IsMaster)
+	stateMachine.SetMaster(flag_isMaster)
 
 	if stateMachine.IsMaster() {
 
