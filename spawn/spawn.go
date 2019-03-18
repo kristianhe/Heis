@@ -4,12 +4,14 @@ import (
 	".././common/formats"
 	"../control"
 	"../network"
+	"../cases"
+	"../orders"
 
 	"fmt"
 	"os/exec"
 )
 
-// Main channels
+// Main channels											// TODO revurder navn på channels... vær konsekvent
 var channel_write = make(chan formats.SimpleMessage)
 var channel_read = make(chan formats.SimpleMessage)
 
@@ -26,13 +28,13 @@ var orderChannel = make(chan formats.Order)
 var floorChannel = make(chan formats.Floor)
 
 func InitBackup() {
-
 	fmt.Println("Backup routine has started.")
-	// start go-rutiner for backup i nettverksmodulen
+	// Start goroutines for backup
 	go network.BackupCoordinator(backupChannel_read, backupChannel_write, channel_abort)
-	// start go-rutiner for heartbeat
-
-	// restore master (if necessary)
+	// Start goroutines for heartbeat
+	go cases.CheckHeartbeat(channel_abort, channel_init_master)
+	go cases.CheckBackupHeartbeat(channel_init_master, backupChannel_read)
+	// Restore master (if necessary)
 	go restoreMaster()
 }
 
@@ -41,7 +43,7 @@ func InitMaster() {
 	fmt.Println("IP address:", network.GetIP())
 	// Control
 	control.Init()
-	// network
+	// Network goroutines
 	go network.BackupWarden(backupChannel_read, backupChannel_write, channel_abort)
 	go network.Warden(channel_read, channel_write, channel_abort)
 	go network.Coordinator(channel_read, channel_write, channel_abort)
@@ -49,12 +51,17 @@ func InitMaster() {
 	generateBackup()
 	// Update state machine
 	stateMachine.SetMaster(true)
-	// Events
-
+	// Case goroutines
+	go cases.PollFloor(floorChannel)
+	go cases.PollOrder(orderChannel)
+	go orders.Handle(floorChannel, orderChannel, channel_write)
 	// Listener and broadcaster
-
+	go cases.BroadcastToNetwork(channel_write)
+	go cases.ListenToNetwork(channel_read, channel_write)
+	go cases.Heartbeater(backupChannel_write)
+	go cases.CheckStatus(channel_write)
 	// Catch ctrl+c termination and stop the elevator
-
+	go cases.ExitHandler()
 }
 
 func generateBackup() {

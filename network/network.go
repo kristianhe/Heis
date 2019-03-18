@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 	"time"
+	"encoding/json"
 )
 
 // Default ports
@@ -15,14 +16,6 @@ var backupMasterPort int = 30014
 var backupSlavePort int = 30015
 
 // Functions
-func createSocket(port int) *net.UDPConn {
-	localAddr, err := net.ResolveUDPAddr("udp", fmt.Sprintf(":%d", port))
-	if err != nil 	{ fmt.Println("Error: ", localAddr, err) }
-	socket, err := net.ListenUDP("udp", localAddr)
-	if err != nil	{ fmt.Println("Error: ", localAddr, err) }
-	return socket
-}
-
 func GetID(sender *net.UDPAddr) formats.ID	{ return formats.ID(sender.IP.String()) }
 
 func GetIP() formats.ID {
@@ -35,32 +28,41 @@ func GetIP() formats.ID {
 	return ""
 }
 
+func createSocket(port int) *net.UDPConn {
+	localAddr, err := net.ResolveUDPAddr("udp", fmt.Sprintf(":%d", port))
+	if err != nil 	{ fmt.Println("Error: ", localAddr, err) }
+	socket, err := net.ListenUDP("udp", localAddr)
+	if err != nil	{ fmt.Println("Error: ", localAddr, err) }
+	return socket
+}
+
 func setDeadline(socket *net.UDPConn, t time.Time) {
 	err := socket.SetReadDeadline(t.Add(time.Millisecond * 2000)) // Creates a deadline for just this socket, not all
 	if err != nil && !err.(net.Error).Timeout() 	{ fmt.Println("Error: ", err) }
 }
 
+// [Description here]
 func listen(socket *net.UDPConn, incomming_information chan formats.SimpleMessage, abort chan bool) {
 	for {
 		select {
-			case <-abort:
-							socket.Close()
-							return
-			default:
-							setDeadline(socket, time.Now())	// Deadline for the listener
-							data := make([]byte, 2048)
-							receivedData, sender, err := socket.ReadFromUDP(data)
-							if err == nil {
-								incomming_information <- formats.SimpleMessage{GetID(sender), data[:receivedData]}
-							} else if err != nil && !err.(net.Error).Timeout() {
-								fmt.Println("Error: ", err)
-							}
-							time.Sleep(time.Millisecond * 10)
+		case <-abort:
+						socket.Close()
+						return
+		default:
+						setDeadline(socket, time.Now())	// Deadline for the listener
+						data := make([]byte, 2048)
+						receivedData, sender, err := socket.ReadFromUDP(data)
+						if err == nil {
+							incomming_information <-formats.SimpleMessage{GetID(sender), data[:receivedData]}
+						} else if err != nil && !err.(net.Error).Timeout() {
+							fmt.Println("Error: ", err)
+						}
+						time.Sleep(time.Millisecond * 10)
 		}
 	}
 }
 
-// TODO Siste argument er en slags sjekk. Finn ut hva denne gjør og lag en bra navn
+// [Description here] 																						// TODO Siste argument er en slags sjekk. Finn ut hva denne gjør og lag en bra navn
 func broadcast(socket *net.UDPConn, destination int, outgoing_information chan formats.SimpleMessage, abort chan bool, isLocal bool) {
 	address := GetIP()
 	if !isLocal 	{ address = "255.255.255.255" }
@@ -109,9 +111,21 @@ func BackupWarden(read_from_slave chan formats.SimpleMessage, write_to_slave cha
 }
 
 // Continously listens to check if the master is alive
-// TODO kan fjerne argument nr 2? Det brukes ikke
-func BackupCoordinator(read_from_master chan formats.SimpleMessage, write_to_master chan formats.SimpleMessage, abort chan bool) {
+func BackupCoordinator(read_from_master chan formats.SimpleMessage, write_to_master chan formats.SimpleMessage, abort chan bool) {		// TODO kan fjerne argument nr 2? Det brukes ikke
 	socket := createSocket(backupSlavePort)
 	listen(socket, read_from_master, abort)
 	socket.Close()
+}
+
+func EncodeMessage(msg formats.DetailedMessage) []byte {						// TODO hvis vi skal bruke JSON bør vi lese oss opp på det!!
+	result, err := json.Marshal(msg)
+	if err != nil	{ fmt.Println("Error: ", err) }
+	return result
+}
+
+func DecodeMessage(b []byte) formats.DetailedMessage {
+	var result formats.DetailedMessage
+	err := json.Unmarshal(b, &result)
+	if err != nil	{ fmt.Println("Error: ", err) }
+	return result
 }

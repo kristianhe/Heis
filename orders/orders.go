@@ -6,7 +6,7 @@ import (
 	"../stateMachine"
 	".././common/formats"
 	".././common/constants"
-	
+
 	"fmt"
 	"math"
 	"sync"
@@ -22,7 +22,7 @@ var ordersOffline []formats.Order
 var check_counter = 0												// TODO Denne brukes ikke????????
 
 func Handle(channel_poll_floor chan formats.Floor, channel_poll_order chan formats.Order, channel_write chan formats.SimpleMessage) {
-	// Network messages
+	// Declare network messages
 	var detailedMessageToSend formats.DetailedMessage
 	var simpleMessageToSend formats.SimpleMessage
 	for {
@@ -35,11 +35,11 @@ func Handle(channel_poll_floor chan formats.Floor, channel_poll_order chan forma
 				PrioritizeOrder(&currentOrder)
 				// We do not want a duplicate order in the system
 				if !CheckIfOrderExists(currentOrder) {									// TODO skiftet navn fra CheckOrderExists
-					// Create and send message
-					detailedMessageToSend.Category = constants.MESSAGE_ORDER
-					detailedMessageToSend.Order = currentOrder
-					simpleMessageToSend.Data = network.EncodeMessage(detailedMessageToSend)			// TODO har ikke laget EncodeMessage enda...
-					channel_write <- simpleMessageToSend
+					// Define and send network messages
+					detailedMessageToSend.Category 	= constants.MESSAGE_ORDER
+					detailedMessageToSend.Order 	= currentOrder
+					simpleMessageToSend.Data 		= network.EncodeMessage(detailedMessageToSend)			// TODO har ikke laget EncodeMessage enda...
+					channel_write <-simpleMessageToSend
 					// Insert order into local array
 					InsertOrder(currentOrder)
 				}
@@ -223,7 +223,7 @@ func RunActiveOrders() {
 	if stateMachine.GetState() != constants.STATE_DOOR_OPEN {
 		if CountRelevantOrders() > 0 {
 			// Instantiate variables
-			ordersOver := false
+			ordersOver 	:= false
 			ordersUnder := false
 			localOrders := GetOrders()
 			// Check if we have orders above or under current floor
@@ -330,10 +330,10 @@ func CompleteOrder(channel_write chan formats.SimpleMessage, order formats.Order
 	var detailedMessageToSend formats.DetailedMessage
 	var simpleMessageToSend formats.SimpleMessage
 	// Create and send message
-	detailedMessageToSend.Category = constants.MESSAGE_FULFILLED
-	detailedMessageToSend.Order = order
-	simpleMessageToSend.Data = network.EncodeMessage(detailedMessageToSend)
-	channel_write <- simpleMessageToSend
+	detailedMessageToSend.Category 	= constants.MESSAGE_FULFILLED
+	detailedMessageToSend.Order 	= order
+	simpleMessageToSend.Data 		= network.EncodeMessage(detailedMessageToSend)
+	channel_write <-simpleMessageToSend
 	fmt.Println(filename, "Order completed.")
 }
 
@@ -346,7 +346,7 @@ func RequestOrders(channel_write chan formats.SimpleMessage) {
 	// Create and send message
 	detailedMessageToSend.Category = constants.MESSAGE_REQUEST
 	simpleMessageToSend.Data = network.EncodeMessage(detailedMessageToSend)
-	channel_write <- simpleMessageToSend
+	channel_write <-simpleMessageToSend
 }
 
 // Getters and setters

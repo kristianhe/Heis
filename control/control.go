@@ -189,7 +189,7 @@ func GetFloorSignal() int {
 	if elevio.ReadBit(elevio.SENSOR_FLOOR4) == constants.TRUE {
 		return constants.FLOOR_LAST
 	}
-	//Invalid floor
+	// Invalid floor
 	return constants.INVALID
 }
 

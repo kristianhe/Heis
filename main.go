@@ -11,7 +11,7 @@ func main() {
 
 	flag_isMaster := stateMachine.IsMaster()
 
-	flag.BoolVar(&flag_isMaster, "master", false, "X??")
+	flag.BoolVar(&flag_isMaster, "master", false, "Start as master ??????")
 	flag.Parse()
 
 	stateMachine.SetMaster(flag_isMaster)

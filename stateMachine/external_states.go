@@ -27,7 +27,7 @@ func RemoveExternalElevator(elevator formats.Status) {
 				elevators = append(elevators[:index], elevators[index+1]...)
 				mutex.Unlock()
 				fmt.Println(elevator.Elevator, "is removed.")
-				// To prevent out of bounds and panic we:
+				// To prevent out of bounds and panic
 				break
 			}
 		}
@@ -52,9 +52,7 @@ func UpdateExternalElevator(new formats.Status) {
 			}
 		}
 	}
-	if !isFound {
-		AddExternalElevator(new)
-	}
+	if !isFound  { AddExternalElevator(new) }
 }
 
 func GetExternalElevators() []formats.Status {
