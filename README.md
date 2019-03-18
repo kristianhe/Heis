@@ -2,15 +2,15 @@
 Repository for group 43 to work on the elevator project.
 
 ## Module overview
-Common - All constant values and message formats
-Control - (description here)  
-Elevio - Signal processing to and from the elevator hardware 
-Elevaluator - (description here)  
-Network - (description here)  
-Orders - (description here) 
-Spawn - (description here) 
-State machine - (description here)  
-Fault tolerance - Incorporated into individual modules 
+Common - All constant values and message formats  
+Control - (description here)    
+Elevio - Signal processing to and from the elevator hardware   
+Elevaluator - (description here)    
+Network - (description here)    
+Orders - (description here)   
+Spawn - (description here)   
+State machine - (description here)    
+Fault tolerance - Incorporated into individual modules   
 
 
 
