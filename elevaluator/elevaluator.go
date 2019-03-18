@@ -2,7 +2,9 @@ package elevaluator
 
 import (
 	"time"
-	//"../common"
+
+	".././common/constants"
+	".././common/formats"
 	"../control"
 )
 
@@ -41,7 +43,7 @@ func networkListener(channel_read chan formats.SimpleMessage, channel_write chan
 	return
 }
 
-func heartbeatChecker(channel_abort chan bool, channel_init_master chan bool) {
+func heartbeatLoop(backupChannel_write chan formats.SimpleMessage) {
 	return
 }
 
@@ -49,11 +51,11 @@ func heartbeatListener(channel_init_master chan bool, backupChannel_read chan fo
 	return
 }
 
-func heartbeatLoop(backupChannel_write chan formats.SimpleMessage) {
+func heartbeatChecker(channel_abort chan bool, channel_init_master chan bool) {
 	return
 }
 
-// Start new heartbeat
+// Starts a new heartbeat
 func setHeartbeat() {
 	heartbeat = time.Now()
 }

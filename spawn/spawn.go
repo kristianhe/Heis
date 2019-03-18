@@ -3,7 +3,8 @@ package spawn
 import (
 	"fmt"
 	"os/exec"
-	//"../common" // Denne bare fjernes når jeg lagrer filen...?
+
+	".././common/formats"
 	"../control"
 	"../network"
 )

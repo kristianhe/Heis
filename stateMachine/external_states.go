@@ -3,7 +3,8 @@ package stateMachine
 import (
 	"fmt"
 	"sync"
-	//"../common" // Denne bare fjernes når jeg lagrer filen...?
+
+	".././common/formats"
 )
 
 var elevators []formats.Status

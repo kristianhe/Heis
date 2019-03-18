@@ -3,7 +3,9 @@ package stateMachine
 import (
 	"fmt"
 	"sync"
-	//"../common" // Denne bare fjernes når jeg lagrer filen...?
+
+	".././common/constants"
+	".././common/formats"
 )
 
 var mutex sync.Mutex

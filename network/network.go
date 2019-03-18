@@ -1,10 +1,11 @@
 package network
 
 import (
-	"../common"
 	"fmt"
 	"net"
 	"time"
+
+	".././common/formats"
 )
 
 // Default ports
