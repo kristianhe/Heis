@@ -4,7 +4,7 @@ Repository for group 43 to work on the elevator project.
 ## Module overview
 Cases - (description here)    
 Common - All constant values and message formats  
-Control - (description here) 
+Control - (description here)   
 Elevio - Signal processing to and from the elevator hardware      
 Network - (description here)    
 Orders - (description here)   
