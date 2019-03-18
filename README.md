@@ -5,13 +5,12 @@ Repository for group 43 to work on the elevator project.
 Cases - (description here)    
 Common - All constant values and message formats  
 Control - (description here) 
-Elevaluator - (description here)  
 Elevio - Signal processing to and from the elevator hardware      
 Network - (description here)    
 Orders - (description here)   
 Spawn - (description here)   
 State machine - (description here)    
-Fault tolerance - Incorporated into individual modules   [fjernes snart]
+Fault tolerance - Incorporated into individual modules   [to be removed]
 
 
 
