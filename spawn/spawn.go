@@ -1,12 +1,12 @@
 package spawn
 
 import (
-	"fmt"
-	"os/exec"
-
 	".././common/formats"
 	"../control"
 	"../network"
+
+	"fmt"
+	"os/exec"
 )
 
 // Main channels

@@ -1,11 +1,11 @@
 package network
 
 import (
+	".././common/formats"
+
 	"fmt"
 	"net"
 	"time"
-
-	".././common/formats"
 )
 
 // Default ports
@@ -23,9 +23,9 @@ func createSocket(port int) *net.UDPConn {
 	return socket
 }
 
-func GetID(sender *net.UDPAddr) ID	{ return ID(sender.IP.String()) }
+func GetID(sender *net.UDPAddr) formats.ID	{ return formats.ID(sender.IP.String()) }
 
-func GetIP() ID {
+func GetIP() formats.ID {
 	interfaceAddrs, err := net.InterfaceAddrs()
 	if err != nil	{ return "" }
 	for _, interfaceAddrs := range interfaceAddrs {

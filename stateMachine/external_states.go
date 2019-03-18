@@ -1,10 +1,10 @@
 package stateMachine
 
 import (
+	".././common/formats"
+
 	"fmt"
 	"sync"
-
-	".././common/formats"
 )
 
 var elevators []formats.Status

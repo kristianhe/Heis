@@ -1,11 +1,11 @@
 package stateMachine
 
 import (
-	"fmt"
-	"sync"
-
 	".././common/constants"
 	".././common/formats"
+
+	"fmt"
+	"sync"
 )
 
 var mutex sync.Mutex

@@ -1,10 +1,10 @@
 package main
 
 import (
-	"flag"
-
 	"./spawn"
 	"./stateMachine"
+
+	"flag"
 )
 
 func main() {

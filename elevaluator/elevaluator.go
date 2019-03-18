@@ -1,11 +1,11 @@
 package elevaluator
 
 import (
-	"time"
-
 	".././common/constants"
 	".././common/formats"
 	"../control"
+
+	"time"
 )
 
 var heartbeat = time.Now()
