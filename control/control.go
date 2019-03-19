@@ -6,6 +6,7 @@ import (
 	"../stateMachine"
 
 	"fmt"
+	"conn"
 )
 
 var floor int
@@ -13,14 +14,10 @@ var filename string = "Control -"
 
 func Init() {
 	// Initiate elevio
-	var init_suc bool = elevio.Init()
-	if init_suc != true {
-		fmt.Println(filename, "Error when attempting to initialize ElevIO")
-	}
+	var initSuccess bool = elevio.Init()
+	if initSuccess != true   { fmt.Println(filename, "Error when attempting to initialize ElevIO") }
 	ClearLights()
-	if GetFloorSignal() == constants.INVALID {
-		GoUp()
-	}
+	if GetFloorSignal() == constants.INVALID   { GoUp() }
 	fmt.Println(filename, "Initialized ElevIO")
 }
 
@@ -35,17 +32,21 @@ func GoDown() {
 }
 
 func DirUp() {
-	elevio.ClearBit(elevio.MOTORDIR)
-	stateMachine.SetDir(constants.UP)
+	mutex.Lock()
+	defer mutex.Unlock()
+	conn.Write([]byte{1, byte(constants.MOTOR_UP), 0, 0})
+	stateMachine.SetDirection(constants.UP)
 }
 
 func DirDown() {
-	elevio.SetBit(elevio.MOTORDIR)
-	stateMachine.SetDir(constants.DOWN)
+	mutex.Lock()
+	defer mutex.Unlock()
+	conn.Write([]byte{1, byte(constants.MOTOR_DOWN), 0, 0})
+	stateMachine.SetDirection(constants.DOWN)
 }
 
-func SwitchDir() { // TODO skiftet fra "DirectionSwitch" til SwitchDir
-	if stateMachine.GetDir() == constants.UP {
+func SwitchDir() { 										// TODO skiftet fra "DirectionSwitch" til SwitchDir
+	if stateMachine.GetDirection() == constants.UP {
 		DirDown()
 	} else {
 		DirUp()
@@ -53,12 +54,18 @@ func SwitchDir() { // TODO skiftet fra "DirectionSwitch" til SwitchDir
 }
 
 func Move() {
-	elevio.WriteAnalog(elevio.MOTOR, elevio.MOTOR_SPEED)
+
+	mutex.Lock()
+	defer mutex.Unlock()
+	conn.Write([]byte{1, byte(2800), 0, 0})    		// 2800 is motor speed
 	stateMachine.SetState(constants.STATE_RUNNING)
 }
 
 func Stop() {
-	elevio.WriteAnalog(elevio.MOTOR, constants.STOP)
+
+	mutex.Lock()
+	defer mutex.Unlock()
+	conn.Write([]byte{1, byte(constants.STOP), 0, 0})
 }
 
 func ClearLights() {
@@ -135,8 +142,7 @@ func SetFloorIndicator(floor int) int {
 func SetDoorLamp(lamp int) {
 	if lamp == constants.ON {
 		elevio.SetBit(elevio.LIGHT_DOOR_OPEN)
-	}
-	if lamp == constants.OFF {
+	} else if lamp == constants.OFF {
 		elevio.ClearBit(elevio.LIGHT_DOOR_OPEN)
 	}
 }
@@ -194,7 +200,7 @@ func GetFloorSignal() int {
 }
 
 // Returns true if the stop button is pressed
-func GetStopSignal() int { return elevio.ReadBit(elevio.STOP) }
+func GetStopSignal() int   { return elevio.ReadBit(elevio.STOP) }
 
 // Returns true if we have a obstruction
-func GetObstruction() int { return elevio.ReadBit(elevio.OBSTRUCTION) }
+func GetObstruction() int   { return elevio.ReadBit(elevio.OBSTRUCTION) }

@@ -17,6 +17,10 @@ const (
 	FLOORS       = 4
 	BUTTONS      = 3
 
+	MOTOR_UP 	 = 1
+	MOTOR_DOWN 	 =-1
+	MOTOR_STOP   = 0
+
 	FLOOR_FIRST  = 0
 	FLOOR_SECOND = 1
 	FLOOR_THIRD  = 2

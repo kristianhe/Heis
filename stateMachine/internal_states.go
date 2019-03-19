@@ -26,9 +26,7 @@ func IsMaster() bool {
 func IsConnected() bool {
 	mutex.Lock()
 	defer mutex.Unlock()
-	if connection == constants.CONNECTED {
-		return true
-	}
+	if connection == constants.CONNECTED  { return true }
 	return false
 }
 

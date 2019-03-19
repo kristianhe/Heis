@@ -65,7 +65,7 @@ func InitMaster() {
 }
 
 func generateBackup() {
-	spawnCmd, err := exec.Command("gnome-terminal", "-x", "go", "run", "ex6.go")
+	spawnCmd, err := exec.Command("gnome-terminal", "-x", "go", "run", "main.go")        			// TODO Sjekk at main.go er riktig å skrive her
 	spawnCmd.Run()
 	if err != nil {
 		fmt.Println("Error: ", spawnCmd, err)
