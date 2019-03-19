@@ -46,18 +46,18 @@ func listen(socket *net.UDPConn, incomming_information chan formats.SimpleMessag
 	for {
 		select {
 		case <-abort:
-						socket.Close()
-						return
+			socket.Close()
+			return
 		default:
-						setDeadline(socket, time.Now())	// Deadline for the listener
-						data := make([]byte, 2048)
-						receivedData, sender, err := socket.ReadFromUDP(data)
-						if err == nil {
-							incomming_information <-formats.SimpleMessage{GetID(sender), data[:receivedData]}
-						} else if err != nil && !err.(net.Error).Timeout() {
-							fmt.Println("Error: ", err)
-						}
-						time.Sleep(time.Millisecond * 10)
+			setDeadline(socket, time.Now())	// Deadline for the listener
+			data := make([]byte, 2048)
+			receivedData, sender, err := socket.ReadFromUDP(data)
+			if err == nil {
+				incomming_information <-formats.SimpleMessage{GetID(sender), data[:receivedData]}
+			} else if err != nil && !err.(net.Error).Timeout() {
+				fmt.Println("Error: ", err)
+			}
+			time.Sleep(time.Millisecond * 10)
 		}
 	}
 }
