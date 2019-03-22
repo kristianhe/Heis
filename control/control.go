@@ -160,32 +160,44 @@ func GetButtonSignal(button, floor int) bool {
 	var buffer [4]byte
 	conn.Read(buffer[:])
 	return toBool(buffer[1])
-
 }
 
 func GetFloorSignal() int {
+	mutex.Lock()
+	defer mutex.Unlock()
+	conn.Write([]byte{7, 0, 0, 0})
+	var buffer [4]byte
+	conn.Read(buffer[:])
 	// Check all floors
-	if elevio.ReadBit(elevio.SENSOR_FLOOR1) == constants.TRUE {
-		return constants.FLOOR_FIRST
+	if buffer[1] != 0 {
+		if int(buffer[2]) == elevio.SENSOR_FLOOR1 { return constants.FLOOR_FIRST }
+		if int(buffer[2]) == elevio.SENSOR_FLOOR2 { return constants.FLOOR_SECOND }
+		if int(buffer[2]) == elevio.SENSOR_FLOOR3 { return constants.FLOOR_THIRD }
+		if int(buffer[2]) == elevio.SENSOR_FLOOR4 { return constants.FLOOR_LAST }
+	} else {
+		return constants.INVALID
 	}
-	if elevio.ReadBit(elevio.SENSOR_FLOOR2) == constants.TRUE {
-		return constants.FLOOR_SECOND
-	}
-	if elevio.ReadBit(elevio.SENSOR_FLOOR3) == constants.TRUE {
-		return constants.FLOOR_THIRD
-	}
-	if elevio.ReadBit(elevio.SENSOR_FLOOR4) == constants.TRUE {
-		return constants.FLOOR_LAST
-	}
-	// Invalid floor
-	return constants.INVALID
 }
 
-// Returns true if the stop button is pressed
-func GetStopSignal() int   { return elevio.ReadBit(elevio.STOP) }
+// Returns 1 if the stop button is pressed
+func GetStopSignal() int {
+	mutex.Lock()
+	defer mutex.Unlock()
+	conn.Write([]byte{8, 0, 0, 0})
+	var buffer [4]byte
+	conn.Read(buffer[:])
+	return int(buffer[1])
+}
 
-// Returns true if we have a obstruction
-func GetObstruction() int   { return elevio.ReadBit(elevio.OBSTRUCTION) }
+// Returns 1 if we have a obstruction
+func GetObstruction() int {
+	mutex.Lock()
+	defer mutex.Unlock()
+	conn.Write([]byte{9, 0, 0, 0})
+	var buffer [4]byte
+	conn.Read(buffer[:])
+	return int(buffer[1])
+}
 
 func toBool(a byte) bool {
 	var b bool = false
