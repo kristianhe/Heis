@@ -1,11 +1,12 @@
 package spawn
 
 import (
-	".././common/formats"
+	formats ".././common/formats"
 	"../control"
 	"../network"
 	"../cases"
 	"../orders"
+	"../stateMachine"
 
 	"fmt"
 	"os/exec"
@@ -65,22 +66,18 @@ func InitMaster() {
 }
 
 func generateBackup() {
-	spawnCmd, err := exec.Command("gnome-terminal", "-x", "go", "run", "main.go")        			// TODO Sjekk at main.go er riktig å skrive her
+	spawnCmd := exec.Command("gnome-terminal", "-x", "go", "run", "main.go")        			// TODO Sjekk at main.go er riktig å skrive her
 	spawnCmd.Run()
-	if err != nil {
-		fmt.Println("Error: ", spawnCmd, err)
-	}
 	fmt.Println("A new backup has been spawned.")
 }
 
 func restoreMaster() {
 	for {
-		// Check if we are master
 		if !stateMachine.IsMaster() {
 			select {
 			case <-channel_init_master:
 				// We are no longer a backup
-				initMaster()
+				InitMaster()
 				break
 			}
 		}

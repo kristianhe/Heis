@@ -4,8 +4,8 @@ import (
 	"../control"
 	"../network"
 	"../stateMachine"
-	".././common/formats"
-	".././common/constants"
+	formats ".././common/formats"
+	constants ".././common/constants"
 
 	"fmt"
 	"math"
@@ -79,9 +79,8 @@ func PrioritizeDirection(elevatorState int, elevatorDirection int, orderDirectio
 		if elevatorDirection == orderDirection {
 			return 1
 		}
-	} else {
-		return 0
 	}
+	return 0
 }
 
 func PrioritizeOrders() {
@@ -116,10 +115,10 @@ func PrioritizeOrder(order *formats.Order) {
 		// Find ID of local elevator
 		priority.Elevator = network.GetIP()
 		// Prioritize
-		priority.Count += PrioritizeState(stateMachine.GetState())
-		priority.Count += PrioritizeFloor(stateMachine.GetFloor(), copy.Floor)
-		priority.Count += PrioritizeDirection(stateMachine.GetState(), stateMachine.GetDirection(), copy.Direction)
-		if (stateMachine.GetState() == constants.STATE_EMERGENCY)	{ priority.Count -= 20 }
+		priority.Queue += PrioritizeState(stateMachine.GetState())
+		priority.Queue += PrioritizeFloor(stateMachine.GetFloor(), copy.Floor)
+		priority.Queue += PrioritizeDirection(stateMachine.GetState(), stateMachine.GetDirection(), copy.Direction)
+		if (stateMachine.GetState() == constants.STATE_EMERGENCY)	{ priority.Queue -= 20 }
 		// Add priority
 		priorities = append(priorities, priority)
 		// External elevators
@@ -127,12 +126,12 @@ func PrioritizeOrder(order *formats.Order) {
 			for index := range elevators {
 				// Fetch elevator
 				priority.Elevator = elevators[index].Elevator
-				priority.Count = 0
+				priority.Queue = 0
 				// Calculate priority
-				priority.Count += PrioritizeState(elevators[index].State)
-				priority.Count += PrioritizeFloor(elevators[index].Floor, copy.Floor)
-				priority.Count += PrioritizeDirection(elevators[index].State, elevators[index].Direction, copy.Direction)
-				if (elevators[index].State == constants.STATE_EMERGENCY)	{ priority.Count -= 20 }
+				priority.Queue += PrioritizeState(elevators[index].State)
+				priority.Queue += PrioritizeFloor(elevators[index].Floor, copy.Floor)
+				priority.Queue += PrioritizeDirection(elevators[index].State, elevators[index].Direction, copy.Direction)
+				if (elevators[index].State == constants.STATE_EMERGENCY)	{ priority.Queue -= 20 }
 				// Add priority
 				priorities = append(priorities, priority)
 			}
@@ -141,17 +140,17 @@ func PrioritizeOrder(order *formats.Order) {
 		if len(priorities) > 0 {
 			for index := range priorities {
 				// If we have a bigger score
-				if priorities[index].Count > priority.Count {
+				if priorities[index].Queue > priority.Queue {
 					// Change elevator
 					priority.Elevator = priorities[index].Elevator
-					priority.Count = priorities[index].Count
+					priority.Queue = priorities[index].Queue
 				// If we have the same score, compare IP addresses. Biggest IP get's the order.
-				} else if priorities[index].Count == priority.Count {
+				} else if priorities[index].Queue == priority.Queue {
 					//Compare
 					if priorities[index].Elevator > priority.Elevator {
 						//Change elevator
 						priority.Elevator = priorities[index].Elevator
-						priority.Count = priorities[index].Count
+						priority.Queue = priorities[index].Queue
 					}
 				}
 			}
@@ -261,9 +260,8 @@ func CheckIfOrderExists(order formats.Order) bool {
 				return true
 			}
 		}
-	} else {
-		return false
 	}
+	return false
 }
 
 func CheckIfOrdersAreCompleted(channel_write chan formats.SimpleMessage) {
@@ -275,8 +273,7 @@ func CheckIfOrdersAreCompleted(channel_write chan formats.SimpleMessage) {
 				// Check if we are on the same floor as the order
 				if localOrders[index].Floor == stateMachine.GetFloor() {
 					// Check if it is a order pushed inside or the correct direction outside										// TODO igjen, hva betyr dette???
-					if (localOrders[index].Elevator == network.GetIP()) && (localOrders[index].Category == constants.BUTTON_INSIDE)
-						|| (localOrders[index].Category == constants.BUTTON_OUTSIDE	&& localOrders[index].Direction == stateMachine.GetDirection()) {
+					if ((localOrders[index].Elevator == network.GetIP()) && (localOrders[index].Category == constants.BUTTON_INSIDE)) || (localOrders[index].Category == constants.BUTTON_OUTSIDE	&& localOrders[index].Direction == stateMachine.GetDirection()) {
 							InitCompleteOrder(channel_write, localOrders[index])
 							// Prevent panic
 							break
@@ -434,7 +431,7 @@ func PrintOrders() {
 }
 
 func PrintPriority(local_priority formats.Priority) {
-	fmt.Println(filename, " Elevator: ", local_priority.Elevator, ", count: ", local_priority.Count)
+	fmt.Println(filename, " Elevator: ", local_priority.Elevator, ", count: ", local_priority.Queue)
 }
 
 func PrintPriorities(localPriorities []formats.Priority) {

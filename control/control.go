@@ -1,7 +1,7 @@
 package control
 
 import (
-	".././common/constants"
+	constants ".././common/constants"
 	"../elevio"
 	"../stateMachine"
 
@@ -23,8 +23,9 @@ func Init() {
 		fmt.Println("Driver already initialized!")
 		return
 	}
-	conn, err := net.Dial("tcp", "localhost:15657") // TODO Denne adressen må endres
-	if err != nil	{ fmt.Println("Error.") }
+	var err error
+	conn, err = net.Dial("tcp", "localhost:15657") // TODO Denne adressen må endres
+	if err != nil	{ panic(err.Error()) }
 	initialized = true
 }
 
@@ -41,14 +42,14 @@ func GoDown() {
 func DirUp() {
 	mutex.Lock()
 	defer mutex.Unlock()
-	conn.Write([]byte{1, byte(constants.MOTOR_UP), 0, 0})
+	conn.Write([]byte{1, byte(constants.UP), 0, 0})
 	stateMachine.SetDirection(constants.UP)
 }
 
 func DirDown() {
 	mutex.Lock()
 	defer mutex.Unlock()
-	conn.Write([]byte{1, byte(constants.MOTOR_DOWN), 0, 0})
+	conn.Write([]byte{1, byte(constants.DOWN), 0, 0})
 	stateMachine.SetDirection(constants.DOWN)
 }
 
@@ -63,7 +64,7 @@ func SwitchDir() { 										// TODO skiftet fra "DirectionSwitch" til SwitchDir
 func Move() {
 	mutex.Lock()
 	defer mutex.Unlock()
-	conn.Write([]byte{1, byte(2800), 0, 0})    		// 2800 is motor speed
+	conn.Write([]byte{1, byte(1), 0, 0})    		// 2800 is motor speed
 	stateMachine.SetState(constants.STATE_RUNNING)
 }
 
@@ -174,9 +175,8 @@ func GetFloorSignal() int {
 		if int(buffer[2]) == elevio.SENSOR_FLOOR2 { return constants.FLOOR_SECOND }
 		if int(buffer[2]) == elevio.SENSOR_FLOOR3 { return constants.FLOOR_THIRD }
 		if int(buffer[2]) == elevio.SENSOR_FLOOR4 { return constants.FLOOR_LAST }
-	} else {
-		return constants.INVALID
 	}
+	return constants.INVALID
 }
 
 // Returns 1 if the stop button is pressed

@@ -1,7 +1,7 @@
 package network
 
 import (
-formats ".././common/formats"
+	formats ".././common/formats"
 
 	"fmt"
 	"net"
@@ -10,20 +10,20 @@ formats ".././common/formats"
 )
 
 // Default ports
-var masterPort int = 30012
-var slavePort int = 30013
-var backupMasterPort int = 30014
-var backupSlavePort int = 30015
+var masterPort int = 30056
+var slavePort int = 30057
+var backupMasterPort int = 30058
+var backupSlavePort int = 30059
 
 // Functions
 func GetID(sender *net.UDPAddr) formats.ID	{ return formats.ID(sender.IP.String()) }
 
-func GetIP() string {
+func GetIP() formats.ID {
 	interfaceAddrs, err := net.InterfaceAddrs()
 	if err != nil	{ return "" }
 	for _, interfaceAddrs := range interfaceAddrs {
 		networkIP, ok := interfaceAddrs.(*net.IPNet)
-		if ok && !networkIP.IP.IsLoopback() && networkIP.IP.To4() != nil	{ return networkIP.IP.String() }
+		if ok && !networkIP.IP.IsLoopback() && networkIP.IP.To4() != nil	{ return formats.ID(networkIP.IP.String()) }
 	}
 	return ""
 }
@@ -113,6 +113,7 @@ func BackupWarden(read_from_slave chan formats.SimpleMessage, write_to_slave cha
 
 // Continously listens to check if the master is alive
 func BackupCoordinator(read_from_master chan formats.SimpleMessage, write_to_master chan formats.SimpleMessage, abort chan bool) {		// TODO kan fjerne argument nr 2? Det brukes ikke
+	fmt.Println("BackupCoordinator has started")
 	socket := createSocket(backupSlavePort)
 	listen(socket, read_from_master, abort)
 	socket.Close()

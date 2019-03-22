@@ -8,7 +8,7 @@ formats	".././common/formats"
 	"sync"
 )
 
-var mute sync.Mutex
+var mutex sync.Mutex
 var master bool = false
 var connection int = constants.DISCONNECTED
 var state int = constants.STATE_STARTUP
@@ -18,45 +18,46 @@ var priority int = 0
 var connectedIp formats.ID = "0.0.0.0"
 
 func IsMaster() bool {
-	mute.Lock()
-	defer mute.Unlock()
+	mutex.Lock()
+	defer mutex.Unlock()
+	fmt.Println("yalla")
 	return master
 }
 
 func IsConnected() bool {
-	mute.Lock()
-	defer mute.Unlock()
+	mutex.Lock()
+	defer mutex.Unlock()
 	if connection == constants.CONNECTED  { return true }
 	return false
 }
 
 func GetState() int {
-	mute.Lock()
-	defer mute.Unlock()
+	mutex.Lock()
+	defer mutex.Unlock()
 	return state
 }
 
 func GetFloor() int {
-	mute.Lock()
-	defer mute.Unlock()
+	mutex.Lock()
+	defer mutex.Unlock()
 	return floor
 }
 
 func GetDirection() int {
-	mute.Lock()
-	defer mute.Unlock()
+	mutex.Lock()
+	defer mutex.Unlock()
 	return direction
 }
 
 func GetPriority() int {
-	mute.Lock()
-	defer mute.Unlock()
+	mutex.Lock()
+	defer mutex.Unlock()
 	return priority
 }
 
 func GetConnectedIp() formats.ID {
-	mute.Lock()
-	defer mute.Unlock()
+	mutex.Lock()
+	defer mutex.Unlock()
 	return connectedIp
 }
 
@@ -79,14 +80,14 @@ func PrintState() string {
 }
 
 func SetMaster(local_master bool) {
-	mute.Lock()
-	defer mute.Unlock()
+	mutex.Lock()
+	defer mutex.Unlock()
 	master = local_master
 }
 
 func SetConnection(desiredConnection int) {
-	mute.Lock()
-	defer mute.Unlock()
+	mutex.Lock()
+	defer mutex.Unlock()
 	if connection != desiredConnection {
 		connection = desiredConnection
 		fmt.Println("Setting connection to", connection)
@@ -94,8 +95,8 @@ func SetConnection(desiredConnection int) {
 }
 
 func SetState(desiredState int) {
-	mute.Lock()
-	defer mute.Unlock()
+	mutex.Lock()
+	defer mutex.Unlock()
 	if state != desiredState {
 		state = desiredState
 		fmt.Println(state, "is the new state.")
@@ -103,8 +104,8 @@ func SetState(desiredState int) {
 }
 
 func SetFloor(desiredFloor int) {
-	mute.Lock()
-	defer mute.Unlock()
+	mutex.Lock()
+	defer mutex.Unlock()
 	if floor != desiredFloor {
 		floor = desiredFloor
 		fmt.Println("Setting floor to", floor)
@@ -112,8 +113,8 @@ func SetFloor(desiredFloor int) {
 }
 
 func SetDirection(desiredDirection int) {
-	mute.Lock()
-	defer mute.Unlock()
+	mutex.Lock()
+	defer mutex.Unlock()
 	if direction != desiredDirection {
 		direction = desiredDirection
 		fmt.Println("Setting direction to", direction)
@@ -121,8 +122,8 @@ func SetDirection(desiredDirection int) {
 }
 
 func SetPriority(desiredPriority int) {
-	mute.Lock()
-	defer mute.Unlock()
+	mutex.Lock()
+	defer mutex.Unlock()
 	if priority != desiredPriority {
 		priority = desiredPriority
 		fmt.Println(priority, "is the new priority.")
@@ -130,8 +131,8 @@ func SetPriority(desiredPriority int) {
 }
 
 func SetConnectedIp(desiredConnectedIp formats.ID) {
-	mute.Lock()
-	defer mute.Unlock()
+	mutex.Lock()
+	defer mutex.Unlock()
 	if connectedIp != desiredConnectedIp {
 		connectedIp = desiredConnectedIp
 		fmt.Println("A new connection to", connectedIp, "has been established.")

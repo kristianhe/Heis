@@ -4,11 +4,9 @@ import (
 	formats ".././common/formats"
 
 	"fmt"
-	"sync"
 )
 
 var elevators []formats.Status
-var mutex sync.Mutex
 
 func AddExternalElevator(elevator formats.Status) {
 	fmt.Println("Adding elevator", elevator.Elevator)
@@ -24,7 +22,7 @@ func RemoveExternalElevator(elevator formats.Status) {
 		for index := range localElevators {
 			if localElevators[index].Elevator == elevator.Elevator {
 				mutex.Lock()
-				elevators = append(elevators[:index], elevators[index+1]...)
+				elevators = elevators[:index+copy(elevators[index:], elevators[index+1:])]
 				mutex.Unlock()
 				fmt.Println(elevator.Elevator, "is removed.")
 				// To prevent out of bounds and panic

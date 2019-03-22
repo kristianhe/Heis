@@ -1,8 +1,8 @@
 package cases
 
 import (
-	".././common/constants"
-	".././common/formats"
+	constants ".././common/constants"
+	formats ".././common/formats"
 	"../stateMachine"
 	"../network"
 	"../control"
@@ -29,6 +29,7 @@ func PollFloor(floorChannel chan formats.Floor) {
 		}
 		time.Sleep(time.Millisecond * 10)
 	}
+}
 
 func PollOrder(orderChannel chan formats.Order) {
 	for {
@@ -78,6 +79,7 @@ func Heartbeater(backupChannel_write chan formats.SimpleMessage) {
 
 // Checks if we have received a heartbeat from the local master. If it takes longer than three seconds, spawn as new master.				// TODO hva var denne lokale masteren igjen?
 func CheckHeartbeat(channel_abort chan bool, channel_init_master chan bool) {
+	fmt.Println("CheckHeartbeat has started")
 	for {
 		if !stateMachine.IsMaster() {
 			// Calculate time
@@ -101,6 +103,7 @@ func CheckHeartbeat(channel_abort chan bool, channel_init_master chan bool) {
 
 // Checks if we have received a heartbeat form the local backup. Update timestamp in receive.							// TODO Local backup? Har vi ekstern backup også??
 func CheckBackupHeartbeat(channel_init_master chan bool, backupChannel_read chan formats.SimpleMessage) {					// TODO Sjekk om denne tolkningen av koken er rett...
+	fmt.Println("CheckBackupHeartbeat has started")
 	// Declare network messages
 	var detailedMessageReceived formats.DetailedMessage
 	var simpleMessageReceived formats.SimpleMessage
@@ -152,7 +155,7 @@ func ListenToNetwork(channel_read chan formats.SimpleMessage, channel_write chan
 	var simpleMessageReceived formats.SimpleMessage
 	for {
 		if stateMachine.IsMaster() {
-			select {
+			select {
 			case simpleMessageReceived = <-channel_read:
 				// Get message and decode
 				detailedMessageReceived = network.DecodeMessage(simpleMessageReceived.Data)
@@ -167,7 +170,7 @@ func ListenToNetwork(channel_read chan formats.SimpleMessage, channel_write chan
 						// Order received from another elevator
 						fmt.Println("Order received.")
 						// Check if the message wasn't sent from this computer
-						if !orders.CheckIfOrderExists(detailedMessageReceived.Order)  { orders.InsertOrder(detailedMessageReceived.Order) }
+						if !orders.CheckIfOrderExists(detailedMessageReceived.Order) { orders.InsertOrder(detailedMessageReceived.Order) }
 						break
 					case constants.MESSAGE_FULFILLED:
 						// Order fulfilled by another elevator
@@ -235,7 +238,7 @@ func CheckStatus(channel_write chan formats.SimpleMessage) {											// TODO k
 			elevator := localElevators[elevatorIndex]
 			// Calculate time
 			elapsedTime := time.Since(elevator.Time)
-			elapsedTime = (elapsedTime + time.Second/2) / time.second
+			elapsedTime = (elapsedTime + time.Second/2) / time.Second
 			// Check for timeout
 			if elapsedTime > 3 {
 				stateMachine.RemoveExternalElevator(elevator)
@@ -250,7 +253,7 @@ func CheckStatus(channel_write chan formats.SimpleMessage) {											// TODO k
 				order := localOrders[ordersIndex]
 				// Calculate time
 				elapsedTime := time.Since(order.Time)
-				elapsedTime = (elapsedTime + time.Second/2) / time.second
+				elapsedTime = (elapsedTime + time.Second/2) / time.Second
 				// Check for timeout
 				if order.Elevator == network.GetIP() && elapsedTime > 20 {
 					stateMachine.SetState(constants.STATE_EMERGENCY)
@@ -278,13 +281,14 @@ func CheckRequestedOrders() (int, int) {
 			}
 		}
 	}
+	return constants.INVALID, constants.INVALID
 }
 
 // Handles exits by Ctrl+C termination
 func ExitHandler() {
 	// This channel is called when the program is terminated
 	signalChannel := make(chan os.Signal, 10)
-	signalChannel.Notify(signalChannel, os.Interrupt)
+	signal.Notify(signalChannel, os.Interrupt)
 	<-signalChannel
 	// Stop the elevator
 	control.Stop()

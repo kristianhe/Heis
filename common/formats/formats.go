@@ -16,7 +16,7 @@ type DetailedMessage struct {
 	Heartbeat 	Heartbeat
 	Status    	Status
 	Order     	Order
-	OrderList 	OrderList
+	Orders 			Orders
 }
 
 type Status struct {
@@ -24,12 +24,12 @@ type Status struct {
 	State     	int
 	Floor     	int
 	Direction 	int
-	Priority  	int // Bruke Priority-structen her?
-	Time		time.Time
+	Priority  	int
+	Time				time.Time
 }
 
 type Order struct {
-	Category  	string
+	Category  	int
 	Elevator  	ID
 	Direction 	int
 	Floor     	int
@@ -37,14 +37,14 @@ type Order struct {
 	Time      	time.Time
 }
 
-type OrderList struct {
+type Orders struct {
 	Elevator 	ID
 	List     	[]Order
 }
 
 type Floor struct {
 	Current 	int
-	Status  	int // Moving, idle etc. Bruke enum her i stedet for int?
+	Status  	int
 }
 
 type Priority struct {
