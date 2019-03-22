@@ -273,7 +273,7 @@ func CheckStatus(channel_write chan formats.SimpleMessage) {											// TODO k
 func CheckRequestedOrders() (int, int) {
 	for floor := 0; floor < constants.FLOORS; floor++ {
 		for button := 0; button < constants.BUTTONS; button++ {
-			if control.GetButtonSignal(button, floor) == true {
+			if control.GetButtonSignal(button, floor) == true { // TODO stor sjanse for at det er noe feil med denne. Den er omgjort fra en int til en bool
 				return button, floor
 			}
 		}

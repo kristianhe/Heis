@@ -6,19 +6,26 @@ import (
 	"../stateMachine"
 
 	"fmt"
+	"sync"
 	"net"
 )
 
-var floor int
+
 var filename string = "Control -"
+var mutex sync.Mutex
+var conn net.Conn
+var floor int
+var initialized bool = false
+var numFloors int = 4
 
 func Init() {
-	// Initiate elevio
-	var initSuccess bool = elevio.Init()
-	if initSuccess != true   { fmt.Println(filename, "Error when attempting to initialize ElevIO") }
-	ClearLights()
-	if GetFloorSignal() == constants.INVALID   { GoUp() }
-	fmt.Println(filename, "Initialized ElevIO")
+	if initialized {
+		fmt.Println("Driver already initialized!")
+		return
+	}
+	conn, err := net.Dial("tcp", "localhost:15657") // TODO Denne adressen må endres
+	if err != nil	{ fmt.Println("Error.") }
+	initialized = true
 }
 
 func GoUp() {
@@ -54,7 +61,6 @@ func SwitchDir() { 										// TODO skiftet fra "DirectionSwitch" til SwitchDir
 }
 
 func Move() {
-
 	mutex.Lock()
 	defer mutex.Unlock()
 	conn.Write([]byte{1, byte(2800), 0, 0})    		// 2800 is motor speed
@@ -62,7 +68,6 @@ func Move() {
 }
 
 func Stop() {
-
 	mutex.Lock()
 	defer mutex.Unlock()
 	conn.Write([]byte{1, byte(constants.STOP), 0, 0})
@@ -80,89 +85,82 @@ func ClearLights() {
 }
 
 func SetButtonLamp(button, floor, lamp int) int {
-	if floor <= constants.INVALID {
-		fmt.Println(filename, "Illegal floor, must be larger than 0!")
-		return constants.INVALID
-	}
-	if floor > constants.FLOORS {
-		fmt.Println(filename, "Illegal floor, must be less than ", constants.FLOORS)
-		return constants.INVALID
-	}
-	if button <= constants.INVALID {
-		fmt.Println(filename, "Illegal button, must be larger than 0!")
-		return constants.INVALID
-	}
-	if button > constants.BUTTONS {
-		fmt.Println(filename, "Illegal button, must be less than ", constants.BUTTONS)
-		return constants.INVALID
-	}
 	// Turn on lamp
 	if lamp == constants.ON {
-		elevio.SetBit(lamp_matrix[floor][button])
+		mutex.Lock()
+		defer mutex.Unlock()
+		conn.Write([]byte{2, byte(button), byte(floor), toByte(true)})
 		return constants.TRUE
 	}
 	// Turn off lamp
 	if lamp == constants.OFF {
-		elevio.ClearBit(lamp_matrix[floor][button])
+		mutex.Lock()
+		defer mutex.Unlock()
+		conn.Write([]byte{2, byte(button), byte(floor), toByte(false)})
 		return constants.TRUE
 	}
 	return constants.INVALID
 }
 
 func SetFloorIndicator(floor int) int {
-	if floor <= constants.INVALID {
-		fmt.Println(filename, "Illegal floor, must be larger than 0!")
-		return constants.INVALID
-	}
-	if floor > constants.FLOORS {
-		fmt.Println(filename, "Illegal floor, must be less than ", constants.FLOORS)
-		return constants.INVALID
-	}
+	conn.Write([]byte{3, byte(floor), 0, 0})
+	/*
 	switch floor {
-	case constants.FLOOR_FIRST:
+	case constants.FLOOR_FIRST: //00
 		elevio.ClearBit(elevio.LIGHT_FLOOR_IND1)
 		elevio.ClearBit(elevio.LIGHT_FLOOR_IND2)
+
 		return constants.TRUE
-	case constants.FLOOR_SECOND:
+	case constants.FLOOR_SECOND: //01
 		elevio.ClearBit(elevio.LIGHT_FLOOR_IND1)
 		elevio.SetBit(elevio.LIGHT_FLOOR_IND2)
 		return constants.TRUE
-	case constants.FLOOR_THIRD:
+	case constants.FLOOR_THIRD: //10
 		elevio.SetBit(elevio.LIGHT_FLOOR_IND1)
 		elevio.ClearBit(elevio.LIGHT_FLOOR_IND2)
 		return constants.TRUE
-	case constants.FLOOR_LAST:
+	case constants.FLOOR_LAST: //11
 		elevio.SetBit(elevio.LIGHT_FLOOR_IND1)
 		elevio.SetBit(elevio.LIGHT_FLOOR_IND2)
 		return constants.TRUE
 	}
+	*/
 	return constants.INVALID
 }
 
 func SetDoorLamp(lamp int) {
 	if lamp == constants.ON {
-		elevio.SetBit(elevio.LIGHT_DOOR_OPEN)
+		mutex.Lock()
+		defer mutex.Unlock()
+		conn.Write([]byte{4, toByte(true), 0, 0})
 	} else if lamp == constants.OFF {
-		elevio.ClearBit(elevio.LIGHT_DOOR_OPEN)
+		mutex.Lock()
+		defer mutex.Unlock()
+		conn.Write([]byte{4, toByte(false), 0, 0})
 	}
 }
 
 func SetStopLamp(lamp int) {
 	if lamp == constants.ON {
-		elevio.SetBit(elevio.LIGHT_STOP)
+		mutex.Lock()
+		defer mutex.Unlock()
+		conn.Write([]byte{5, toByte(true), 0, 0})
 	}
 	if lamp == constants.OFF {
-		elevio.ClearBit(elevio.LIGHT_STOP)
+		mutex.Lock()
+		defer mutex.Unlock()
+		conn.Write([]byte{5, toByte(false), 0, 0})
 	}
 }
 
-func GetButtonSignal(button, floor int) int {
+func GetButtonSignal(button, floor int) bool {
+	mutex.Lock()
+	defer mutex.Unlock()
+	conn.Write([]byte{6, byte(button), byte(floor), 0})
+	var buffer [4]byte
+	conn.Read(buffer[:])
+	return toBool(buffer[1])
 
-	if elevio.ReadBit(button_matrix[floor][button]) == constants.TRUE {
-		return constants.TRUE
-	} else {
-		return constants.FALSE
-	}
 }
 
 func GetFloorSignal() int {
@@ -188,3 +186,15 @@ func GetStopSignal() int   { return elevio.ReadBit(elevio.STOP) }
 
 // Returns true if we have a obstruction
 func GetObstruction() int   { return elevio.ReadBit(elevio.OBSTRUCTION) }
+
+func toBool(a byte) bool {
+	var b bool = false
+	if a != 0 	{ b = true }
+	return b
+}
+
+func toByte(a bool) byte {
+	var b byte = 0
+	if a	{ b = 1	}
+	return b
+}
