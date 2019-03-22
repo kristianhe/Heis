@@ -8,7 +8,7 @@ import (
 )
 
 const POLL_RATE = 20 * time.Millisecond
-const NUM_FLOORS int = 4
+var NUM_FLOORS int = 4
 
 var _initialized bool = false
 var mutex sync.Mutex

@@ -1,7 +1,7 @@
 package network
 
 import (
-	".././common/formats"
+formats ".././common/formats"
 
 	"fmt"
 	"net"
@@ -18,7 +18,7 @@ var backupSlavePort int = 30015
 // Functions
 func GetID(sender *net.UDPAddr) formats.ID	{ return formats.ID(sender.IP.String()) }
 
-func GetIP() formats.ID {
+func GetIP() string {
 	interfaceAddrs, err := net.InterfaceAddrs()
 	if err != nil	{ return "" }
 	for _, interfaceAddrs := range interfaceAddrs {
@@ -43,8 +43,8 @@ func setDeadline(socket *net.UDPConn, t time.Time) {
 
 // [Description here]
 func listen(socket *net.UDPConn, incomming_information chan formats.SimpleMessage, abort chan bool) {
-	for {
-		select {
+	for{
+		select{
 		case <-abort:
 			socket.Close()
 			return
@@ -58,6 +58,7 @@ func listen(socket *net.UDPConn, incomming_information chan formats.SimpleMessag
 				fmt.Println("Error: ", err)
 			}
 			time.Sleep(time.Millisecond * 10)
+
 		}
 	}
 }
@@ -67,11 +68,11 @@ func broadcast(socket *net.UDPConn, destination int, outgoing_information chan f
 	address := GetIP()
 	if !isLocal 	{ address = "255.255.255.255" }
 	bcast_addr := fmt.Sprintf("%s:%d", address, destination)
-	remote_addr := net.ResolveUDPAddr("udp", bcast_addr)
+	remote_addr, err := net.ResolveUDPAddr("udp", bcast_addr)
 	if err != nil	{ fmt.Println("Error: ", err) }
 	for {
-		formats.SimpleMessage := <-outgoing_information
-		_, err := socket.WriteToUDP(formats.SimpleMessage.Data, remote_addr)
+		SimpleMessage := <-outgoing_information
+		_, err := socket.WriteToUDP(SimpleMessage.Data, remote_addr)
 		if err != nil {
 			if isLocal {
 				// Show error
@@ -88,7 +89,7 @@ func broadcast(socket *net.UDPConn, destination int, outgoing_information chan f
 }
 
 // [Description here]
-func Warden(read_from_slave chan formats.SimpleMessage, write_to_slave chan formats.SimpleMessage, abort chan bool) {
+func Warden(read_from_slave chan formats.SimpleMessage, write_to_slave chan formats.SimpleMessage, abort chan bool) {
 	socket := createSocket(masterPort)
 	go listen(socket, read_from_slave, abort)
 	broadcast(socket, slavePort, write_to_slave, abort, false)
@@ -96,7 +97,7 @@ func Warden(read_from_slave chan formats.SimpleMessage, write_to_slave chan form
 }
 
 // [Description here]
-func Coordinator(read_from_master chan formats.SimpleMessage, write_to_master chan formats.SimpleMessage, abort chan bool) {
+func Coordinator(read_from_master chan formats.SimpleMessage, write_to_master chan formats.SimpleMessage, abort chan bool) {
 	socket := createSocket(slavePort)
 	go listen(socket, read_from_master, abort)
 	broadcast(socket, masterPort, write_to_master, abort, false)

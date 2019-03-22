@@ -6,7 +6,7 @@ import (
 	"../stateMachine"
 
 	"fmt"
-	"conn"
+	"net"
 )
 
 var floor int
@@ -157,23 +157,7 @@ func SetStopLamp(lamp int) {
 }
 
 func GetButtonSignal(button, floor int) int {
-	// Check if floor and button are valid
-	if floor <= constants.INVALID {
-		fmt.Println(filename, "Illegal floor, must be larger than 0!")
-		return constants.INVALID
-	}
-	if floor > constants.FLOORS {
-		fmt.Println(filename, "Illegal floor, must be less than ", constants.FLOORS)
-		return constants.INVALID
-	}
-	if button <= constants.INVALID {
-		fmt.Println(filename, "Illegal button, must be larger than 0!")
-		return constants.INVALID
-	}
-	if button > constants.BUTTONS {
-		fmt.Println(filename, "Illegal button, must be less than ", constants.BUTTONS)
-		return constants.INVALID
-	}
+
 	if elevio.ReadBit(button_matrix[floor][button]) == constants.TRUE {
 		return constants.TRUE
 	} else {

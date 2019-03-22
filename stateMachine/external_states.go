@@ -1,7 +1,7 @@
 package stateMachine
 
 import (
-	".././common/formats"
+	formats ".././common/formats"
 
 	"fmt"
 	"sync"
@@ -77,4 +77,5 @@ func CheckIfExternalElevatorExists(elevator formats.Status) bool {
 			}
 		}
 	}
+	return false
 }
