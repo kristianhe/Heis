@@ -3,65 +3,63 @@ package cases
 import (
 	constants ".././common/constants"
 	formats ".././common/formats"
-	"../stateMachine"
-	"../network"
 	"../control"
+	"../network"
 	"../orders"
+	"../stateMachine"
 
 	"fmt"
-	"time"
 	"os"
 	"os/signal"
+	"time"
 )
 
+var filename string = "Cases: "
 var heartbeat = time.Now()
 
-// TODO Vi har de to neste funksjonene i elevio også, diskuter hvor de bør være
-
-func PollFloor(floorChannel chan formats.Floor) {
+func PollFloor(channel_floor chan formats.Floor) {
 	for {
 		polledFloor := control.GetFloorSignal()
 		if polledFloor != constants.INVALID {
 			var newFloor formats.Floor
 			newFloor.Current = polledFloor
 			control.SetFloorIndicator(polledFloor)
-			floorChannel <-newFloor
+			channel_floor <- newFloor
 		}
 		time.Sleep(time.Millisecond * 10)
 	}
 }
 
-func PollOrder(orderChannel chan formats.Order) {
+func PollOrder(channel_order chan formats.Order) {
 	for {
-		// Get registered button and floor requested
+		// Get registered buttons and floors
 		polledOrderButton, polledOrderFloor := CheckRequestedOrders()
-		// Only go through if not invalid button 																			// TODO sjekk kommentarene her....
+		// Only go through if not invalid button                                                                             // TODO sjekk kommentarene her....
 		if polledOrderButton != constants.INVALID && polledOrderFloor != constants.INVALID {
 			var newOrder formats.Order
 			newOrder.Elevator = network.GetIP()
 			if polledOrderButton == constants.BUTTON_INSIDE {
-				newOrder.Category 	= constants.BUTTON_INSIDE
+				newOrder.Category = constants.BUTTON_INSIDE
 			}
 			if polledOrderButton == constants.BUTTON_UP {
-				newOrder.Category 	= constants.BUTTON_OUTSIDE
-				newOrder.Direction 	= constants.UP
+				newOrder.Category = constants.BUTTON_OUTSIDE
+				newOrder.Direction = constants.UP
 			}
 			if polledOrderButton == constants.BUTTON_DOWN {
-				newOrder.Category 	= constants.BUTTON_OUTSIDE
-				newOrder.Direction 	= constants.DOWN
+				newOrder.Category = constants.BUTTON_OUTSIDE
+				newOrder.Direction = constants.DOWN
 			}
 			// Register the new order
 			newOrder.Floor = polledOrderFloor
 			newOrder.Button = polledOrderButton
 			newOrder.Time = time.Now()
-			orderChannel <-newOrder
+			channel_order <- newOrder
 		}
 		time.Sleep(time.Millisecond * 10)
 	}
 }
 
-
-// Sends a message to the local master every half second										// TODO hva betyr egentlig 'local master'?
+// Sends a message to the local master every half second
 func Heartbeater(backupChannel_write chan formats.SimpleMessage) {
 	// Declare network messages
 	var detailedMessageToSend formats.DetailedMessage
@@ -71,26 +69,25 @@ func Heartbeater(backupChannel_write chan formats.SimpleMessage) {
 			// Define and send network messages
 			detailedMessageToSend.Category = constants.MESSAGE_HEARTBEAT
 			simpleMessageToSend.Data = network.EncodeMessage(detailedMessageToSend)
-			backupChannel_write <-simpleMessageToSend
+			backupChannel_write <- simpleMessageToSend
 		}
 		time.Sleep(time.Millisecond * 500)
 	}
 }
 
-// Checks if we have received a heartbeat from the local master. If it takes longer than three seconds, spawn as new master.				// TODO hva var denne lokale masteren igjen?
-func CheckHeartbeat(channel_abort chan bool, channel_init_master chan bool) {
-	fmt.Println("CheckHeartbeat has started")
+// Checks if we have received a heartbeat from the local master. If it takes longer than three seconds, spawn as new master.
+func CheckHeartbeat(channel_abort, channel_init_master chan bool) {
 	for {
 		if !stateMachine.IsMaster() {
 			// Calculate time
 			elapsedTime := time.Since(heartbeat)
-			elapsedTime = (elapsedTime + time.Second/2) / time.Second															// TODO forstå denne....
+			elapsedTime = (elapsedTime + time.Second/2) / time.Second // TODO forstå denne....
 			if elapsedTime > 3 {
-				// Spawn as master
-				channel_init_master <-true																	// TODO har endret litt på rekkefølgen her... Håper ikke det er utslagsgivende
 				// End this goroutine
-				channel_abort <-true
-				fmt.Println("Did not receive heartbeat. Closing socket and rebooting as master.")
+				channel_abort <- true
+				// Spawn as master
+				channel_init_master <- true
+				fmt.Println(filename, "Did not receive heartbeat. Closing socket and rebooting as master.")
 				return
 			}
 		} else {
@@ -101,9 +98,8 @@ func CheckHeartbeat(channel_abort chan bool, channel_init_master chan bool) {
 	}
 }
 
-// Checks if we have received a heartbeat form the local backup. Update timestamp in receive.							// TODO Local backup? Har vi ekstern backup også??
-func CheckBackupHeartbeat(channel_init_master chan bool, backupChannel_read chan formats.SimpleMessage) {					// TODO Sjekk om denne tolkningen av koken er rett...
-	fmt.Println("CheckBackupHeartbeat has started")
+// Checks if we have received a heartbeat form the local backup. Update timestamp in receive.                            // TODO Local backup? Har vi ekstern backup også??
+func CheckBackupHeartbeat(channel_init_master chan bool, backupChannel_read chan formats.SimpleMessage) { // TODO Sjekk om denne tolkningen av koken er rett...
 	// Declare network messages
 	var detailedMessageReceived formats.DetailedMessage
 	var simpleMessageReceived formats.SimpleMessage
@@ -113,8 +109,10 @@ func CheckBackupHeartbeat(channel_init_master chan bool, backupChannel_read chan
 			case simpleMessageReceived = <-backupChannel_read:
 				// Get message and decode
 				detailedMessageReceived = network.DecodeMessage(simpleMessageReceived.Data)
-				// Check heartbeat from main process on this computer 														// TODO gjør noe med denne kommentaren.. Hva betyr main process
-				if detailedMessageReceived.Category == constants.MESSAGE_HEARTBEAT && simpleMessageReceived.Address == network.GetIP()  { resetHeartbeat() }
+				// Check heartbeat from main process on this computer                                                         // TODO gjør noe med denne kommentaren.. Hva betyr main process
+				if detailedMessageReceived.Category == constants.MESSAGE_HEARTBEAT && simpleMessageReceived.Address == network.GetIP() {
+					resetHeartbeat()
+				}
 			}
 		} else {
 			// No longer master, so break the loop
@@ -124,31 +122,31 @@ func CheckBackupHeartbeat(channel_init_master chan bool, backupChannel_read chan
 	}
 }
 
-func resetHeartbeat()  { heartbeat = time.Now() }
+func resetHeartbeat() { heartbeat = time.Now() }
 
-// [Description here]
-func BroadcastToNetwork(channel_write chan formats.SimpleMessage) {
+// Broadcasts a status message to the other elevators each half second
+func Broadcaster(channel_write chan formats.SimpleMessage) {
 	// Declare network messages
 	var detailedMessageToSend formats.DetailedMessage
 	var simpleMessageToSend formats.SimpleMessage
 	for {
 		if stateMachine.IsMaster() {
 			// Create status messages
-			detailedMessageToSend.Category 			= constants.MESSAGE_STATUS
-			detailedMessageToSend.Status.Elevator 	= network.GetIP()
-			detailedMessageToSend.Status.State 		= stateMachine.GetState()
-			detailedMessageToSend.Status.Floor 		= stateMachine.GetFloor()
-			detailedMessageToSend.Status.Direction 	= stateMachine.GetDirection()
-			detailedMessageToSend.Status.Time 		= time.Now()
+			detailedMessageToSend.Category = constants.MESSAGE_STATUS
+			detailedMessageToSend.Status.Elevator = network.GetIP()
+			detailedMessageToSend.Status.State = stateMachine.GetState()
+			detailedMessageToSend.Status.Floor = stateMachine.GetFloor()
+			detailedMessageToSend.Status.Direction = stateMachine.GetDirection()
+			detailedMessageToSend.Status.Time = time.Now()
 			// Encode the message and send
 			simpleMessageToSend.Data = network.EncodeMessage(detailedMessageToSend)
-			channel_write <-simpleMessageToSend
+			channel_write <- simpleMessageToSend
 		}
 		time.Sleep(time.Millisecond * 500)
 	}
 }
 
-// Listens to the network, receives messagees from the other elevators and does actions according to the message category		// TODO bør denne heller være i network-modulen
+// Listens to the network, receives messagees from the other elevators and does actions according to the message category        // TODO bør denne heller være i network-modulen
 func ListenToNetwork(channel_read chan formats.SimpleMessage, channel_write chan formats.SimpleMessage) {
 	// Declare network messages
 	var detailedMessageReceived formats.DetailedMessage
@@ -168,39 +166,43 @@ func ListenToNetwork(channel_read chan formats.SimpleMessage, channel_write chan
 						break
 					case constants.MESSAGE_ORDER:
 						// Order received from another elevator
-						fmt.Println("Order received.")
+						fmt.Println(filename, "Order received.")
 						// Check if the message wasn't sent from this computer
-						if !orders.CheckIfOrderExists(detailedMessageReceived.Order) { orders.InsertOrder(detailedMessageReceived.Order) }
+						if !orders.CheckIfOrderExists(detailedMessageReceived.Order) {
+							orders.InsertOrder(detailedMessageReceived.Order)
+						}
 						break
 					case constants.MESSAGE_FULFILLED:
 						// Order fulfilled by another elevator
-						fmt.Println("Order already fulfilled.")
-						orders.InitCompleteOrder(channel_write, detailedMessageReceived.Order)													// TODO hva gjør egentlig denne??
+						fmt.Println(filename, "Order already fulfilled.")
+						orders.InitCompleteOrder(channel_write, detailedMessageReceived.Order) // TODO hva gjør egentlig denne??
 						break
 					case constants.MESSAGE_ORDERS:
-						fmt.Println("Order list received.")
+						fmt.Println(filename, "Order list received.")
 						// Check if this is the intended destination
-						if detailedMessageReceived.Orders.Elevator == network.GetIP()  { orders.SetOrders(detailedMessageReceived.Orders.List, channel_write) }
-						// Prevent reconnectiong elevator double order handling 											// TODO hva i all verden betyr dette???
+						if detailedMessageReceived.Orders.Elevator == network.GetIP() {
+							orders.SetOrders(detailedMessageReceived.Orders.List, channel_write)
+						}
+						// Prevent reconnectiong elevator double order handling                                             // TODO hva i all verden betyr dette???
 						orders.RemoveOfflineHistory()
 						break
 					case constants.MESSAGE_REQUEST:
 						// Request order list
-						fmt.Println("Elevator", simpleMessageReceived.Address, "is requesting orders.")
+						fmt.Println(filename, "Elevator", simpleMessageReceived.Address, "is requesting orders.")
 						// Declare network messages
 						var detailedMessageToSend formats.DetailedMessage
 						var simpleMessageToSend formats.SimpleMessage
 						// Define network messages and send them
-						detailedMessageToSend.Category 			= constants.MESSAGE_ORDERS
-						detailedMessageToSend.Orders.Elevator 	= simpleMessageReceived.Address
-						detailedMessageToSend.Orders.List 		= orders.GetOrders()
-						simpleMessageToSend.Data 				= network.EncodeMessage(detailedMessageToSend)
-						channel_write <-simpleMessageReceived
-						fmt.Println("Orders sent.")
+						detailedMessageToSend.Category = constants.MESSAGE_ORDERS
+						detailedMessageToSend.Orders.Elevator = simpleMessageReceived.Address
+						detailedMessageToSend.Orders.List = orders.GetOrders()
+						simpleMessageToSend.Data = network.EncodeMessage(detailedMessageToSend)
+						channel_write <- simpleMessageReceived
+						fmt.Println(filename, "Orders sent.")
 						break
 					case constants.MESSAGE_REPRIORITIZE:
 						// Order fulfilled by another elevator
-						fmt.Println("Reprioritizing.")
+						fmt.Println(filename, "Reprioritizing.")
 						orders.PrioritizeOrders()
 						break
 					}
@@ -211,8 +213,8 @@ func ListenToNetwork(channel_read chan formats.SimpleMessage, channel_write chan
 	}
 }
 
-// [Description here]
-func CheckStatus(channel_write chan formats.SimpleMessage) {											// TODO kan sannsynligvis finne et bedre navn på denne funksjonen
+// Handles cases where one or more elevators are disconnected or in state of emergency
+func SafetyCheck(channel_write chan formats.SimpleMessage) { // TODO kan sannsynligvis finne et bedre navn på denne funksjonen
 	// Declare network messages
 	var detailedMessageToSend formats.DetailedMessage
 	var simpleMessageToSend formats.SimpleMessage
@@ -231,7 +233,7 @@ func CheckStatus(channel_write chan formats.SimpleMessage) {											// TODO k
 			time.Sleep(time.Second)
 			orders.PrioritizeOrders()
 		}
-		// [Descripton here]
+		// Checks for disconnected elevators. If time larger than 3 sec, remove the elevator
 		localElevators := stateMachine.GetExternalElevators()
 		for elevatorIndex := range localElevators {
 			// Fetch spesific elevator (for simpler syntax)
@@ -245,7 +247,7 @@ func CheckStatus(channel_write chan formats.SimpleMessage) {											// TODO k
 				orders.PrioritizeOrders()
 			}
 		}
-		// [Descripton here]
+		// Enable state of emergency if an elevator use more than 20 seconds to finish an order
 		if stateMachine.GetState() != constants.STATE_EMERGENCY {
 			localOrders := orders.GetOrders()
 			for ordersIndex := range localOrders {
@@ -263,8 +265,8 @@ func CheckStatus(channel_write chan formats.SimpleMessage) {											// TODO k
 					// Define the network message and send it
 					detailedMessageToSend.Category = constants.MESSAGE_REPRIORITIZE
 					simpleMessageToSend.Data = network.EncodeMessage(detailedMessageToSend)
-					channel_write <-simpleMessageToSend
-					fmt.Println("Request for repriorization sent.")
+					channel_write <- simpleMessageToSend
+					fmt.Println(filename, "Request for repriorization sent.")
 				}
 			}
 		}
@@ -272,7 +274,6 @@ func CheckStatus(channel_write chan formats.SimpleMessage) {											// TODO k
 	}
 }
 
-// [Description here]
 func CheckRequestedOrders() (int, int) {
 	for floor := 0; floor < constants.FLOORS; floor++ {
 		for button := 0; button < constants.BUTTONS; button++ {
@@ -292,7 +293,7 @@ func ExitHandler() {
 	<-signalChannel
 	// Stop the elevator
 	control.Stop()
-	fmt.Println("The program is killed! Elevator has stopped.")
+	fmt.Println(filename, "The program is killed! Elevator has stopped.")
 	// Do last actions and wait for all write operations to end
 	os.Exit(0)
 }

@@ -2,58 +2,63 @@ package control
 
 import (
 	constants ".././common/constants"
-	"../elevio"
 	"../stateMachine"
 
 	"fmt"
-	"sync"
 	"net"
+	"sync"
 )
 
-
-var filename string = "Control -"
+var filename string = "Control: "
 var mutex sync.Mutex
 var conn net.Conn
 var floor int
-var initialized bool = false
-var numFloors int = 4
+var isInitialized bool = false
+var NUM_FLOORS int = 4
 
-func Init() {
-	if initialized {
+func Init(addr string) {
+	if isInitialized {
 		fmt.Println("Driver already initialized!")
 		return
 	}
+	//ClearLights()
 	var err error
-	conn, err = net.Dial("tcp", "localhost:15657") // TODO Denne adressen må endres
-	if err != nil	{ panic(err.Error()) }
-	initialized = true
+	conn, err = net.Dial("tcp", addr)
+	if err != nil {
+		panic(err.Error())
+	}
+	isInitialized = true
 }
 
+/*
 func GoUp() {
 	DirUp()
-	Move()
+	// Move()
 }
 
 func GoDown() {
 	DirDown()
-	Move()
+	// Move()
 }
+*/
 
 func DirUp() {
 	mutex.Lock()
 	defer mutex.Unlock()
-	conn.Write([]byte{1, byte(constants.UP), 0, 0})
+	conn.Write([]byte{1, byte(1), 0, 0})
 	stateMachine.SetDirection(constants.UP)
+	stateMachine.SetState(constants.STATE_RUNNING)
 }
 
 func DirDown() {
 	mutex.Lock()
 	defer mutex.Unlock()
-	conn.Write([]byte{1, byte(constants.DOWN), 0, 0})
+	conn.Write([]byte{1, byte(1), 0, 0}) // TODO SKIFT FRA 1 til -1
 	stateMachine.SetDirection(constants.DOWN)
+	stateMachine.SetState(constants.STATE_RUNNING)
 }
 
-func SwitchDir() { 										// TODO skiftet fra "DirectionSwitch" til SwitchDir
+func SwitchDir() { // TODO denne er det noe muffins med...
 	if stateMachine.GetDirection() == constants.UP {
 		DirDown()
 	} else {
@@ -61,12 +66,12 @@ func SwitchDir() { 										// TODO skiftet fra "DirectionSwitch" til SwitchDir
 	}
 }
 
-func Move() {
-	mutex.Lock()
-	defer mutex.Unlock()
-	conn.Write([]byte{1, byte(1), 0, 0})    		// 2800 is motor speed
-	stateMachine.SetState(constants.STATE_RUNNING)
-}
+// func Move() {
+// 	mutex.Lock()
+// 	defer mutex.Unlock()
+// 	conn.Write([]byte{1, byte(2800), 0, 0}) // 2800 is motor speed
+// 	stateMachine.SetState(constants.STATE_RUNNING)
+// }
 
 func Stop() {
 	mutex.Lock()
@@ -103,30 +108,10 @@ func SetButtonLamp(button, floor, lamp int) int {
 	return constants.INVALID
 }
 
-func SetFloorIndicator(floor int) int {
+func SetFloorIndicator(floor int) {
+	mutex.Lock()
+	defer mutex.Unlock()
 	conn.Write([]byte{3, byte(floor), 0, 0})
-	/*
-	switch floor {
-	case constants.FLOOR_FIRST: //00
-		elevio.ClearBit(elevio.LIGHT_FLOOR_IND1)
-		elevio.ClearBit(elevio.LIGHT_FLOOR_IND2)
-
-		return constants.TRUE
-	case constants.FLOOR_SECOND: //01
-		elevio.ClearBit(elevio.LIGHT_FLOOR_IND1)
-		elevio.SetBit(elevio.LIGHT_FLOOR_IND2)
-		return constants.TRUE
-	case constants.FLOOR_THIRD: //10
-		elevio.SetBit(elevio.LIGHT_FLOOR_IND1)
-		elevio.ClearBit(elevio.LIGHT_FLOOR_IND2)
-		return constants.TRUE
-	case constants.FLOOR_LAST: //11
-		elevio.SetBit(elevio.LIGHT_FLOOR_IND1)
-		elevio.SetBit(elevio.LIGHT_FLOOR_IND2)
-		return constants.TRUE
-	}
-	*/
-	return constants.INVALID
 }
 
 func SetDoorLamp(lamp int) {
@@ -163,7 +148,7 @@ func GetButtonSignal(button, floor int) bool {
 	return toBool(buffer[1])
 }
 
-func GetFloorSignal() int {
+func GetFloorSignal() int { // TODO Denne funksjonen må endres, trenger ikke if
 	mutex.Lock()
 	defer mutex.Unlock()
 	conn.Write([]byte{7, 0, 0, 0})
@@ -171,10 +156,18 @@ func GetFloorSignal() int {
 	conn.Read(buffer[:])
 	// Check all floors
 	if buffer[1] != 0 {
-		if int(buffer[2]) == elevio.SENSOR_FLOOR1 { return constants.FLOOR_FIRST }
-		if int(buffer[2]) == elevio.SENSOR_FLOOR2 { return constants.FLOOR_SECOND }
-		if int(buffer[2]) == elevio.SENSOR_FLOOR3 { return constants.FLOOR_THIRD }
-		if int(buffer[2]) == elevio.SENSOR_FLOOR4 { return constants.FLOOR_LAST }
+		if int(buffer[2]) == constants.FLOOR_FIRST {
+			return constants.FLOOR_FIRST
+		}
+		if int(buffer[2]) == constants.FLOOR_SECOND {
+			return constants.FLOOR_SECOND
+		}
+		if int(buffer[2]) == constants.FLOOR_THIRD {
+			return constants.FLOOR_THIRD
+		}
+		if int(buffer[2]) == constants.FLOOR_LAST {
+			return constants.FLOOR_LAST
+		}
 	}
 	return constants.INVALID
 }
@@ -201,12 +194,16 @@ func GetObstruction() int {
 
 func toBool(a byte) bool {
 	var b bool = false
-	if a != 0 	{ b = true }
+	if a != 0 {
+		b = true
+	}
 	return b
 }
 
 func toByte(a bool) byte {
 	var b byte = 0
-	if a	{ b = 1	}
+	if a {
+		b = 1
+	}
 	return b
 }

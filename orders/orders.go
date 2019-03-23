@@ -1,11 +1,11 @@
 package orders
 
 import (
+	constants ".././common/constants"
+	formats ".././common/formats"
 	"../control"
 	"../network"
 	"../stateMachine"
-	formats ".././common/formats"
-	constants ".././common/constants"
 
 	"fmt"
 	"math"
@@ -14,13 +14,14 @@ import (
 )
 
 // Variables
-var filename string = "Orders -"
+var filename string = "Orders: "
 var mutex sync.Mutex
 var isInserting bool
 var orders []formats.Order
 var ordersOffline []formats.Order
-var check_counter = 0												// TODO Denne brukes ikke????????
+var check_counter = 0 // TODO Denne brukes ikke????????
 
+// [Description here]
 func Handle(channel_poll_floor chan formats.Floor, channel_poll_order chan formats.Order, channel_write chan formats.SimpleMessage) {
 	// Declare network messages
 	var detailedMessageToSend formats.DetailedMessage
@@ -34,12 +35,12 @@ func Handle(channel_poll_floor chan formats.Floor, channel_poll_order chan forma
 				isInserting = true
 				PrioritizeOrder(&currentOrder)
 				// We do not want a duplicate order in the system
-				if !CheckIfOrderExists(currentOrder) {									// TODO skiftet navn fra CheckOrderExists
+				if !CheckIfOrderExists(currentOrder) { // TODO skiftet navn fra CheckOrderExists
 					// Define and send network messages
-					detailedMessageToSend.Category 	= constants.MESSAGE_ORDER
-					detailedMessageToSend.Order 	= currentOrder
-					simpleMessageToSend.Data 		= network.EncodeMessage(detailedMessageToSend)			// TODO har ikke laget EncodeMessage enda...
-					channel_write <-simpleMessageToSend
+					detailedMessageToSend.Category = constants.MESSAGE_ORDER
+					detailedMessageToSend.Order = currentOrder
+					simpleMessageToSend.Data = network.EncodeMessage(detailedMessageToSend) // TODO har ikke laget EncodeMessage enda...
+					channel_write <- simpleMessageToSend
 					// Insert order into local array
 					InsertOrder(currentOrder)
 				}
@@ -49,7 +50,7 @@ func Handle(channel_poll_floor chan formats.Floor, channel_poll_order chan forma
 		case currentFloor := <-channel_poll_floor:
 			// Update floor
 			stateMachine.SetFloor(currentFloor.Current)
-			CheckIfOrdersAreCompleted(channel_write)											// TODO skiftet navn fra CheckOrdersCompleted
+			CheckIfOrdersAreCompleted(channel_write) // TODO skiftet navn fra CheckOrdersCompleted
 			RunActiveOrders()
 			// Check if we are at bottom
 			if stateMachine.GetFloor() == constants.FLOOR_FIRST {
@@ -72,7 +73,9 @@ func PrioritizeState(elevatorState int) int {
 	}
 }
 
-func PrioritizeFloor(currentFloor int, orderFloor int) int	{ return constants.FLOORS - int(math.Abs(float64(currentFloor - orderFloor))) }
+func PrioritizeFloor(currentFloor int, orderFloor int) int {
+	return constants.FLOORS - int(math.Abs(float64(currentFloor-orderFloor)))
+}
 
 func PrioritizeDirection(elevatorState int, elevatorDirection int, orderDirection int) int {
 	if elevatorState == constants.STATE_RUNNING {
@@ -84,8 +87,12 @@ func PrioritizeDirection(elevatorState int, elevatorDirection int, orderDirectio
 }
 
 func PrioritizeOrders() {
-	for index := range orders 			{ PrioritizeOrder(&orders[index]) }
-	for index := range ordersOffline	{ PrioritizeOrder(&ordersOffline[index]) }
+	for index := range orders {
+		PrioritizeOrder(&orders[index])
+	}
+	for index := range ordersOffline {
+		PrioritizeOrder(&ordersOffline[index])
+	}
 	PrintOrders()
 	fmt.Println(filename, "All orders are reprioritized.")
 }
@@ -118,7 +125,9 @@ func PrioritizeOrder(order *formats.Order) {
 		priority.Queue += PrioritizeState(stateMachine.GetState())
 		priority.Queue += PrioritizeFloor(stateMachine.GetFloor(), copy.Floor)
 		priority.Queue += PrioritizeDirection(stateMachine.GetState(), stateMachine.GetDirection(), copy.Direction)
-		if (stateMachine.GetState() == constants.STATE_EMERGENCY)	{ priority.Queue -= 20 }
+		if stateMachine.GetState() == constants.STATE_EMERGENCY {
+			priority.Queue -= 20
+		}
 		// Add priority
 		priorities = append(priorities, priority)
 		// External elevators
@@ -131,7 +140,9 @@ func PrioritizeOrder(order *formats.Order) {
 				priority.Queue += PrioritizeState(elevators[index].State)
 				priority.Queue += PrioritizeFloor(elevators[index].Floor, copy.Floor)
 				priority.Queue += PrioritizeDirection(elevators[index].State, elevators[index].Direction, copy.Direction)
-				if (elevators[index].State == constants.STATE_EMERGENCY)	{ priority.Queue -= 20 }
+				if elevators[index].State == constants.STATE_EMERGENCY {
+					priority.Queue -= 20
+				}
 				// Add priority
 				priorities = append(priorities, priority)
 			}
@@ -144,7 +155,7 @@ func PrioritizeOrder(order *formats.Order) {
 					// Change elevator
 					priority.Elevator = priorities[index].Elevator
 					priority.Queue = priorities[index].Queue
-				// If we have the same score, compare IP addresses. Biggest IP get's the order.
+					// If we have the same score, compare IP addresses. Biggest IP get's the order.
 				} else if priorities[index].Queue == priority.Queue {
 					//Compare
 					if priorities[index].Elevator > priority.Elevator {
@@ -166,7 +177,8 @@ func PrioritizeOrder(order *formats.Order) {
 func InsertOrder(order formats.Order) {
 	// Check if it is an order pushed inside or the correct direction outside 									// TODO hva søren betyr dette?
 	if (order.Elevator == network.GetIP() && order.Category == constants.BUTTON_INSIDE) ||
-		(order.Category == constants.BUTTON_OUTSIDE) {control.SetButtonLamp(order.Button, order.Floor, constants.ON)
+		(order.Category == constants.BUTTON_OUTSIDE) {
+		control.SetButtonLamp(order.Button, order.Floor, constants.ON)
 	}
 	// Add order
 	mutex.Lock()
@@ -195,7 +207,7 @@ func InsertOfflineOrder(order formats.Order) {
 	}
 }
 
-func ResetOrderTimer(order formats.Order){
+func ResetOrderTimer(order formats.Order) {
 	localOrders := GetOrders()
 	for index := range localOrders {
 		// Check if all fields are alike
@@ -211,7 +223,9 @@ func CountRelevantOrders() int {
 	if len(localOrders) > 0 {
 		for index := range localOrders {
 			// Check if the order has something to do with local machine
-			if localOrders[index].Elevator == network.GetIP()	{ counter++ }
+			if localOrders[index].Elevator == network.GetIP() {
+				counter++
+			}
 		}
 	}
 	return counter
@@ -222,22 +236,26 @@ func RunActiveOrders() {
 	if stateMachine.GetState() != constants.STATE_DOOR_OPEN {
 		if CountRelevantOrders() > 0 {
 			// Instantiate variables
-			ordersOver 	:= false
+			ordersOver := false
 			ordersUnder := false
 			localOrders := GetOrders()
 			// Check if we have orders above or under current floor
 			for index := range localOrders {
 				// Check if it is a order pushed inside or the correct direction outside 				// TODO hva søren betyr denne kommentaren??
 				if localOrders[index].Elevator == network.GetIP() {
-					if localOrders[index].Floor > stateMachine.GetFloor() 	{ ordersOver = true }
-					if localOrders[index].Floor < stateMachine.GetFloor() 	{ ordersUnder = true }
+					if localOrders[index].Floor > stateMachine.GetFloor() {
+						ordersOver = true
+					}
+					if localOrders[index].Floor < stateMachine.GetFloor() {
+						ordersUnder = true
+					}
 				}
 			}
 			// Run elevator in the correct direction
 			if ordersOver && !(ordersUnder && stateMachine.GetDirection() == constants.DOWN) {
-				control.GoUp()
+				control.DirUp()
 			} else if ordersUnder && !(ordersOver && stateMachine.GetDirection() == constants.UP) {
-				control.GoDown()
+				control.DirDown()
 			}
 			// If we don't have any orders over or under, change direction
 			if !ordersOver && !ordersUnder {
@@ -273,10 +291,10 @@ func CheckIfOrdersAreCompleted(channel_write chan formats.SimpleMessage) {
 				// Check if we are on the same floor as the order
 				if localOrders[index].Floor == stateMachine.GetFloor() {
 					// Check if it is a order pushed inside or the correct direction outside										// TODO igjen, hva betyr dette???
-					if ((localOrders[index].Elevator == network.GetIP()) && (localOrders[index].Category == constants.BUTTON_INSIDE)) || (localOrders[index].Category == constants.BUTTON_OUTSIDE	&& localOrders[index].Direction == stateMachine.GetDirection()) {
-							InitCompleteOrder(channel_write, localOrders[index])
-							// Prevent panic
-							break
+					if ((localOrders[index].Elevator == network.GetIP()) && (localOrders[index].Category == constants.BUTTON_INSIDE)) || (localOrders[index].Category == constants.BUTTON_OUTSIDE && localOrders[index].Direction == stateMachine.GetDirection()) {
+						InitCompleteOrder(channel_write, localOrders[index])
+						// Prevent panic
+						break
 					}
 				}
 			}
@@ -318,7 +336,7 @@ func InitCompleteOrder(channel_write chan formats.SimpleMessage, order formats.O
 
 func CompleteOrder(channel_write chan formats.SimpleMessage, order formats.Order, timer *time.Timer) {
 	// When timer is finished
-	<-timer.C																					// TODO hva er dette?
+	<-timer.C // TODO hva er dette?
 	// Order-complete sequence
 	control.SetButtonLamp(order.Button, order.Floor, constants.OFF)
 	control.SetDoorLamp(constants.OFF)
@@ -327,10 +345,10 @@ func CompleteOrder(channel_write chan formats.SimpleMessage, order formats.Order
 	var detailedMessageToSend formats.DetailedMessage
 	var simpleMessageToSend formats.SimpleMessage
 	// Create and send message
-	detailedMessageToSend.Category 	= constants.MESSAGE_FULFILLED
-	detailedMessageToSend.Order 	= order
-	simpleMessageToSend.Data 		= network.EncodeMessage(detailedMessageToSend)
-	channel_write <-simpleMessageToSend
+	detailedMessageToSend.Category = constants.MESSAGE_FULFILLED
+	detailedMessageToSend.Order = order
+	simpleMessageToSend.Data = network.EncodeMessage(detailedMessageToSend)
+	channel_write <- simpleMessageToSend
 	fmt.Println(filename, "Order completed.")
 }
 
@@ -343,7 +361,7 @@ func RequestOrders(channel_write chan formats.SimpleMessage) {
 	// Create and send message
 	detailedMessageToSend.Category = constants.MESSAGE_REQUEST
 	simpleMessageToSend.Data = network.EncodeMessage(detailedMessageToSend)
-	channel_write <-simpleMessageToSend
+	channel_write <- simpleMessageToSend
 }
 
 // Getters and setters
@@ -362,7 +380,9 @@ func GetOrders() []formats.Order {
 	// Create a copy to prevent data race
 	copy := make([]formats.Order, len(orders), len(orders))
 	// Need to manually copy all variables (Library function "copy" will not do)
-	for id, elem := range orders	{ copy[id] = elem }
+	for id, elem := range orders {
+		copy[id] = elem
+	}
 	return copy
 }
 
@@ -389,33 +409,39 @@ func SetOrders(list []formats.Order, channel_write chan formats.SimpleMessage) {
 		isFound := false
 		for offlineIndex := range ordersOffline {
 			// Check if all fields are alike
-			if IsOrdersEqual(list[index], ordersOffline[offlineIndex])	{ isFound = true }
+			if IsOrdersEqual(list[index], ordersOffline[offlineIndex]) {
+				isFound = true
+			}
 		}
-		if !isFound	{ InsertOrder(list[index]) }
+		if !isFound {
+			InsertOrder(list[index])
+		}
 	}
 }
 
 // Checking if orders are equal without checking timestamp
-func IsOrdersEqual(order formats.Order, compareOrder formats.Order) bool {									// TODO bør kanskje hete AreOrdersEqual?? Men lurt å ha isX-formatet
-	if(order.Category == constants.BUTTON_INSIDE){
-		if(order.Elevator != compareOrder.Elevator){
+func IsOrdersEqual(order formats.Order, compareOrder formats.Order) bool { // TODO bør kanskje hete AreOrdersEqual?? Men lurt å ha isX-formatet
+	if order.Category == constants.BUTTON_INSIDE {
+		if order.Elevator != compareOrder.Elevator {
 			return false
 		}
 	}
-	if (order.Category  == compareOrder.Category &&
+	if order.Category == compareOrder.Category &&
 		order.Direction == compareOrder.Direction &&
-		order.Floor     == compareOrder.Floor &&
-		order.Button    == compareOrder.Button) {
-			return true
+		order.Floor == compareOrder.Floor &&
+		order.Button == compareOrder.Button {
+		return true
 	} else {
-			return false
+		return false
 	}
 }
 
 func PrintOrder(order formats.Order) {
-	if order.Category == constants.BUTTON_INSIDE  { fmt.Println(filename, "Order inside, IP: ", order.Elevator, ",floor: ", order.Floor) }
+	if order.Category == constants.BUTTON_INSIDE {
+		fmt.Println(filename, "Order inside, IP: ", order.Elevator, ", floor: ", order.Floor)
+	}
 	if order.Category == constants.BUTTON_OUTSIDE {
-		fmt.Print(filename, " Order outside, IP: ", order.Elevator, ",floor: ", order.Floor, ",direction: ")
+		fmt.Print(filename, " Order outside, IP: ", order.Elevator, ", floor: ", order.Floor, ", direction: ")
 		if order.Direction == constants.UP {
 			fmt.Print(" up")
 		} else {
@@ -427,7 +453,9 @@ func PrintOrder(order formats.Order) {
 
 func PrintOrders() {
 	localOrders := GetOrders()
-	for index := range localOrders	{ PrintOrder(localOrders[index]) }
+	for index := range localOrders {
+		PrintOrder(localOrders[index])
+	}
 }
 
 func PrintPriority(local_priority formats.Priority) {

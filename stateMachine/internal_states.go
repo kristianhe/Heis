@@ -1,8 +1,8 @@
 package stateMachine
 
 import (
-constants	".././common/constants"
-formats	".././common/formats"
+	constants ".././common/constants"
+	formats ".././common/formats"
 
 	"fmt"
 	"sync"
@@ -20,14 +20,15 @@ var connectedIp formats.ID = "0.0.0.0"
 func IsMaster() bool {
 	mutex.Lock()
 	defer mutex.Unlock()
-	fmt.Println("yalla")
 	return master
 }
 
 func IsConnected() bool {
 	mutex.Lock()
 	defer mutex.Unlock()
-	if connection == constants.CONNECTED  { return true }
+	if connection == constants.CONNECTED {
+		return true
+	}
 	return false
 }
 
@@ -90,7 +91,7 @@ func SetConnection(desiredConnection int) {
 	defer mutex.Unlock()
 	if connection != desiredConnection {
 		connection = desiredConnection
-		fmt.Println("Setting connection to", connection)
+		fmt.Println(filename, "Setting connection to", connection)
 	}
 }
 
@@ -99,7 +100,7 @@ func SetState(desiredState int) {
 	defer mutex.Unlock()
 	if state != desiredState {
 		state = desiredState
-		fmt.Println(state, "is the new state.")
+		fmt.Println(filename, state, "is the new state.")
 	}
 }
 
@@ -108,7 +109,7 @@ func SetFloor(desiredFloor int) {
 	defer mutex.Unlock()
 	if floor != desiredFloor {
 		floor = desiredFloor
-		fmt.Println("Setting floor to", floor)
+		fmt.Println(filename, "Setting floor to", floor)
 	}
 }
 
@@ -117,7 +118,7 @@ func SetDirection(desiredDirection int) {
 	defer mutex.Unlock()
 	if direction != desiredDirection {
 		direction = desiredDirection
-		fmt.Println("Setting direction to", direction)
+		fmt.Println(filename, "Setting direction to", direction)
 	}
 }
 
@@ -126,7 +127,7 @@ func SetPriority(desiredPriority int) {
 	defer mutex.Unlock()
 	if priority != desiredPriority {
 		priority = desiredPriority
-		fmt.Println(priority, "is the new priority.")
+		fmt.Println(filename, priority, "is the new priority.")
 	}
 }
 
@@ -135,6 +136,6 @@ func SetConnectedIp(desiredConnectedIp formats.ID) {
 	defer mutex.Unlock()
 	if connectedIp != desiredConnectedIp {
 		connectedIp = desiredConnectedIp
-		fmt.Println("A new connection to", connectedIp, "has been established.")
+		fmt.Println(filename, "A new connection to", connectedIp, "has been established.")
 	}
 }

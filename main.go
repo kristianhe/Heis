@@ -4,8 +4,8 @@ import (
 	"./spawn"
 	"./stateMachine"
 
-	"fmt"
 	"flag"
+	"time"
 )
 
 func main() {
@@ -18,13 +18,16 @@ func main() {
 	stateMachine.SetMaster(flag_isMaster)
 
 	if stateMachine.IsMaster() {
-		fmt.Println("checkpoint1")
+
 		spawn.InitMaster()
 
 	} else if !stateMachine.IsMaster() {
-		fmt.Println("checkpoint2")
+
 		spawn.InitBackup()
 
 	}
-
+	// To prevent the system from stopping
+	for {
+		time.Sleep(time.Millisecond * 500)
+	}
 }

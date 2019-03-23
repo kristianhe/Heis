@@ -2,15 +2,17 @@ package spawn
 
 import (
 	formats ".././common/formats"
+	"../cases"
 	"../control"
 	"../network"
-	"../cases"
 	"../orders"
 	"../stateMachine"
 
 	"fmt"
 	"os/exec"
 )
+
+var filename string = "Spawn:"
 
 // Main channels											// TODO revurder navn på channels... vær konsekvent
 var channel_write = make(chan formats.SimpleMessage)
@@ -25,8 +27,8 @@ var channel_init_master = make(chan bool)
 var channel_abort = make(chan bool)
 
 // Order channels
-var orderChannel = make(chan formats.Order)
-var floorChannel = make(chan formats.Floor)
+var channel_order = make(chan formats.Order)
+var channel_floor = make(chan formats.Floor)
 
 func InitBackup() {
 	fmt.Println("Backup routine has started.")
@@ -43,7 +45,7 @@ func InitMaster() {
 	fmt.Println("Initializing master.")
 	fmt.Println("IP address:", network.GetIP())
 	// Control
-	control.Init()
+	control.Init("localhost:15657")
 	// Network goroutines
 	go network.BackupWarden(backupChannel_read, backupChannel_write, channel_abort)
 	go network.Warden(channel_read, channel_write, channel_abort)
@@ -53,20 +55,20 @@ func InitMaster() {
 	// Update state machine
 	stateMachine.SetMaster(true)
 	// Case goroutines
-	go cases.PollFloor(floorChannel)
-	go cases.PollOrder(orderChannel)
-	go orders.Handle(floorChannel, orderChannel, channel_write)
+	go cases.PollFloor(channel_floor)
+	go cases.PollOrder(channel_order)
+	go orders.Handle(channel_floor, channel_order, channel_write)
 	// Listener and broadcaster
-	go cases.BroadcastToNetwork(channel_write)
+	go cases.Broadcaster(channel_write)
 	go cases.ListenToNetwork(channel_read, channel_write)
 	go cases.Heartbeater(backupChannel_write)
-	go cases.CheckStatus(channel_write)
+	go cases.SafetyCheck(channel_write)
 	// Catch ctrl+c termination and stop the elevator
 	go cases.ExitHandler()
 }
 
 func generateBackup() {
-	spawnCmd := exec.Command("gnome-terminal", "-x", "go", "run", "main.go")        			// TODO Sjekk at main.go er riktig å skrive her
+	spawnCmd := exec.Command("gnome-terminal", "-x", "go", "run", "main.go") // TODO Sjekk at main.go er riktig å skrive her
 	spawnCmd.Run()
 	fmt.Println("A new backup has been spawned.")
 }

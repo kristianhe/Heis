@@ -6,6 +6,7 @@ import (
 	"fmt"
 )
 
+var filename string = "State Machine: "
 var elevators []formats.Status
 
 func AddExternalElevator(elevator formats.Status) {
@@ -50,7 +51,9 @@ func UpdateExternalElevator(new formats.Status) {
 			}
 		}
 	}
-	if !isFound  { AddExternalElevator(new) }
+	if !isFound {
+		AddExternalElevator(new)
+	}
 }
 
 func GetExternalElevators() []formats.Status {

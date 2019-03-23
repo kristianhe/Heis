@@ -1,4 +1,4 @@
-package elevio
+package common
 
 // In port 4
 const OBSTRUCTION = (0x300 + 23)

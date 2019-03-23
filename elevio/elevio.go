@@ -7,7 +7,10 @@ import (
 	"time"
 )
 
+var filename string = "Elevio: "
+
 const POLL_RATE = 20 * time.Millisecond
+
 var NUM_FLOORS int = 4
 
 var _initialized bool = false
