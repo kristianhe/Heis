@@ -4,13 +4,11 @@ Repository for group 43 to work on the elevator project.
 ## Module overview
 Cases - (description here)    
 Common - Constant values and message formats  
-Control - (description here)            [Control = elevio]   
-Elevio - Signal processing to and from the elevator hardware      
+Control - (description here)             
 Network - (description here)    
 Orders - (description here)   
 Spawn - (description here)   
 State machine - (description here)    
-Fault tolerance - Incorporated into individual modules   [to be removed]
 
 
 
@@ -38,7 +36,7 @@ You should start by taking a look back at [the beginning of Exercise 1](https://
  - [Go network module](https://github.com/TTK4145/Network-go)
  - [Rust network module](https://github.com/edvardsp/network-rust)
  - [Distributed Erlang](http://erlang.org/doc/reference_manual/distributed.html)
- 
+
 By the end of this exercise, you should be able to send some data structure (struct, record, etc) from one machine to another. How you achieve this (in terms of network topology, protocol, serialization) does not matter. The key here is *abstraction*.  
 
 Don't forget that this module should *simplify* the interface between machines: Creating and handling sockets in all routines that need to communicate with the outside world is possible, but is likely to be unwieldy and unmaintainable. We want to encapsulate all the necessary functionality in a single module, so we have a single decoupled component where we can say "This module sends our data over the network". This will almost always be preferable, but above all else: *Think about what best suits your particular design*.
@@ -78,7 +76,7 @@ What kind of network topology do you want to implement? Peer to peer? Master sla
 
 In the case of a master-slave configuration: Do you have only one program, or two (a "master" executable and a "slave")? Is a slave becoming a master a part of the network module?
 > If we avoid a master-slave configuration we also avoid the problem with power loss on the master computer which cripples the whole system.
-    
+
 ##### Technical implementation:
 If you are using TCP: How do you know who connects to who?
 > Are going to use UDP with some TCP functionality (some kind of acknowledge and retransmission).
@@ -97,7 +95,7 @@ Do you use structs, classes, tuples, lists, ...?
 > The simplest data: Lists.
 JSON, XML, or just plain strings?
 > We will use plain strings. The go language has many commands that can manipulate strings in a number of ways. This might
-be useful for us when working with the data. 
+be useful for us when working with the data.
 Is serialization a part of the network module?
 > Surely it should be. The network module should handle all that has to do with data transmission.
 
@@ -114,7 +112,7 @@ UDP doesn't need a connection, and even allows broadcasting
 (You're also allowed to use any other network library or language feature you may desire)  
 > We are going to use UDP.
 
- 
+
 ### Running from another computer
 
 In order to test a network module, you will have to run your code from multiple machines at once. The best way to do this is to log in remotely. Remember to be nice the people sitting at that computer (don't mess with their files, and so on), and try to avoid using the same ports as them.
@@ -127,7 +125,7 @@ In order to test a network module, you will have to run your code from multiple 
      - Copying files *to* remote: `scp -r fileOrFolderAtThisMachine username@#.#.#.#:fileOrFolderAtOtherMachine`
      - Copying files *from* remote: `scp -r username@#.#.#.#:fileOrFolderAtOtherMachine fileOrFolderAtThisMachine`
 129.241.229.181
-    
+
 *If you are scripting something to automate any part of this process, remember to **not** include the login password in any files you upload to github (or anywhere else for that matter)*
 
 ## Extracurricular
@@ -150,7 +148,7 @@ The elevator hardware on the lab is controlled via a National Instruments PCI Di
  - Calling C code from other programming languages is sometimes a bit of a hassle
  - The driver only works on Linux, which you might not use when working elsewhere than the lab
  - Very few of you have an elevator
- 
+
 In order to alleviate the lack of elevators, a simulator was created. In order to use the simulator, you need to see what it does and input "button presses" to it, which means it has to run in a separate terminal window. Then in order to a) make interfacing with the simulator and the real elevator as similar as possible, and b) eliminate the need to call C code, both the simulator and the hardware elevator expose a network-based interface using TCP. In this way, you can seamlessly swap between the simulator and hardware elevators.
 
 This means we have a simple client-server structure to the elevator:
@@ -165,7 +163,7 @@ This means we have a simple client-server structure to the elevator:
 You may want to modify the client end of the driver, or possibly create your own from scratch. There is no particular requirement or recommendation involved here.
 
 *(The [low-level C driver](/driver) for the elevator hardware is included in this repository for completeness, but using it is not recommended.)*
-    
+
 Up and down
 -----------
 
@@ -203,7 +201,7 @@ Implementing the "single elevator control" component as a state machine is the p
    - Switch/match on the behaviour-state (within each event-handler)
    - Call a (preferably pure) function that computes the next state and output actions
    - Perform the output actions and save the new state
-   
+
 You are encouraged to try to trace the analysis steps for the elev_algo code linked above, but I also find that the vastly less rigorous approach of intuition quickly overtakes the methodical one. But for the implementation side you should take a much closer look, especially on why we consider events first then state (as opposed to state-first), and where the divide goes between "code that is directly in the event-handler" and "code that is in a function called by the event handler".
 
 ### Doing it yourself
