@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-var filename string = "Cases: "
+var filename string = "[Cases] \t"
 var heartbeat = time.Now()
 
 func PollFloor(channel_floor chan formats.Floor) {
@@ -292,7 +292,7 @@ func ExitHandler() {
 	signal.Notify(signalChannel, os.Interrupt)
 	<-signalChannel
 	// Stop the elevator
-	control.Stop()
+	control.SetMotorDir(constants.STOP)
 	fmt.Println(filename, "The program is killed! Elevator has stopped.")
 	// Do last actions and wait for all write operations to end
 	os.Exit(0)

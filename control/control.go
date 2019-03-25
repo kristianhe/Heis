@@ -9,7 +9,7 @@ import (
 	"sync"
 )
 
-var filename string = "Control: "
+var filename string = "[Control] \t"
 var mutex sync.Mutex
 var conn net.Conn
 var floor int
@@ -21,67 +21,46 @@ func Init(addr string) {
 		fmt.Println("Driver already initialized!")
 		return
 	}
-	//ClearLights()
 	var err error
 	conn, err = net.Dial("tcp", addr)
 	if err != nil {
 		panic(err.Error())
 	}
+	ClearLights()
 	isInitialized = true
-}
-
-/*
-func GoUp() {
-	DirUp()
-	// Move()
-}
-
-func GoDown() {
-	DirDown()
-	// Move()
-}
-*/
-
-func DirUp() {
-	mutex.Lock()
-	defer mutex.Unlock()
-	conn.Write([]byte{1, byte(1), 0, 0})
-	stateMachine.SetDirection(constants.UP)
-	stateMachine.SetState(constants.STATE_RUNNING)
-}
-
-func DirDown() {
-	mutex.Lock()
-	defer mutex.Unlock()
-	conn.Write([]byte{1, byte(1), 0, 0}) // TODO SKIFT FRA 1 til -1
-	stateMachine.SetDirection(constants.DOWN)
-	stateMachine.SetState(constants.STATE_RUNNING)
-}
-
-func SwitchDir() { // TODO denne er det noe muffins med...
-	if stateMachine.GetDirection() == constants.UP {
-		DirDown()
-	} else {
-		DirUp()
+	// If between floors at startup
+	if GetFloorSignal() == constants.INVALID {
+		SetMotorDir(constants.DIR_DOWN)
 	}
 }
 
-// func Move() {
-// 	mutex.Lock()
-// 	defer mutex.Unlock()
-// 	conn.Write([]byte{1, byte(2800), 0, 0}) // 2800 is motor speed
-// 	stateMachine.SetState(constants.STATE_RUNNING)
-// }
-
-func Stop() {
+func SetMotorDir(dir constants.MotorDirection) {
 	mutex.Lock()
 	defer mutex.Unlock()
-	conn.Write([]byte{1, byte(constants.STOP), 0, 0})
+	conn.Write([]byte{1, byte(dir), 0, 0})
+	if dir == constants.DIR_UP {
+		stateMachine.SetDirection(constants.UP)
+		stateMachine.SetState(constants.STATE_RUNNING)
+	} else if dir == constants.DIR_DOWN {
+		stateMachine.SetDirection(constants.DOWN)
+		stateMachine.SetState(constants.STATE_RUNNING)
+	}
+}
+
+func SwitchDir() {
+	if stateMachine.GetDirection() == constants.UP {
+		SetMotorDir(constants.DIR_DOWN)
+	} else {
+		SetMotorDir(constants.DIR_UP)
+	}
 }
 
 func ClearLights() {
 	for floor := 0; floor < constants.FLOORS; floor++ {
 		for button := 0; button < constants.BUTTONS; button++ {
+			if (floor == 0 && button == constants.BUTTON_DOWN)||(floor == 3 && button == constants.BUTTON_UP) {
+				continue
+			}
 			SetButtonLamp(button, floor, constants.OFF)
 		}
 	}
@@ -148,27 +127,14 @@ func GetButtonSignal(button, floor int) bool {
 	return toBool(buffer[1])
 }
 
-func GetFloorSignal() int { // TODO Denne funksjonen må endres, trenger ikke if
+func GetFloorSignal() int {
 	mutex.Lock()
 	defer mutex.Unlock()
 	conn.Write([]byte{7, 0, 0, 0})
 	var buffer [4]byte
 	conn.Read(buffer[:])
-	// Check all floors
-	if buffer[1] != 0 {
-		if int(buffer[2]) == constants.FLOOR_FIRST {
-			return constants.FLOOR_FIRST
-		}
-		if int(buffer[2]) == constants.FLOOR_SECOND {
-			return constants.FLOOR_SECOND
-		}
-		if int(buffer[2]) == constants.FLOOR_THIRD {
-			return constants.FLOOR_THIRD
-		}
-		if int(buffer[2]) == constants.FLOOR_LAST {
-			return constants.FLOOR_LAST
-		}
-	}
+	// Return current floor
+	if buffer[1] != 0 	{	return int(buffer[2])	}
 	return constants.INVALID
 }
 

@@ -14,12 +14,11 @@ import (
 )
 
 // Variables
-var filename string = "Orders: "
+var filename string = "[Orders] \t"
 var mutex sync.Mutex
 var isInserting bool
 var orders []formats.Order
 var ordersOffline []formats.Order
-var check_counter = 0 // TODO Denne brukes ikke????????
 
 // [Description here]
 func Handle(channel_poll_floor chan formats.Floor, channel_poll_order chan formats.Order, channel_write chan formats.SimpleMessage) {
@@ -35,12 +34,12 @@ func Handle(channel_poll_floor chan formats.Floor, channel_poll_order chan forma
 				isInserting = true
 				PrioritizeOrder(&currentOrder)
 				// We do not want a duplicate order in the system
-				if !CheckIfOrderExists(currentOrder) { // TODO skiftet navn fra CheckOrderExists
+				if !CheckIfOrderExists(currentOrder) {
 					// Define and send network messages
 					detailedMessageToSend.Category = constants.MESSAGE_ORDER
 					detailedMessageToSend.Order = currentOrder
-					simpleMessageToSend.Data = network.EncodeMessage(detailedMessageToSend) // TODO har ikke laget EncodeMessage enda...
-					channel_write <- simpleMessageToSend
+					simpleMessageToSend.Data = network.EncodeMessage(detailedMessageToSend)
+					channel_write <-simpleMessageToSend
 					// Insert order into local array
 					InsertOrder(currentOrder)
 				}
@@ -50,21 +49,14 @@ func Handle(channel_poll_floor chan formats.Floor, channel_poll_order chan forma
 		case currentFloor := <-channel_poll_floor:
 			// Update floor
 			stateMachine.SetFloor(currentFloor.Current)
-			CheckIfOrdersAreCompleted(channel_write) // TODO skiftet navn fra CheckOrdersCompleted
+			CheckIfOrdersAreCompleted(channel_write)
 			RunActiveOrders()
-			// Check if we are at bottom
-			if stateMachine.GetFloor() == constants.FLOOR_FIRST {
-				control.DirUp()
-			}
-			// Check if we are at top
-			if stateMachine.GetFloor() == constants.FLOOR_LAST {
-				control.DirDown()
-			}
 		}
 		time.Sleep(time.Millisecond * 10)
 	}
 }
 
+// [Description here]
 func PrioritizeState(elevatorState int) int {
 	if elevatorState == constants.STATE_IDLE || elevatorState == constants.STATE_DOOR_OPEN {
 		return 1
@@ -74,7 +66,7 @@ func PrioritizeState(elevatorState int) int {
 }
 
 func PrioritizeFloor(currentFloor int, orderFloor int) int {
-	return constants.FLOORS - int(math.Abs(float64(currentFloor-orderFloor)))
+	return constants.FLOORS - int(math.Abs(float64(currentFloor - orderFloor)))
 }
 
 func PrioritizeDirection(elevatorState int, elevatorDirection int, orderDirection int) int {
@@ -253,9 +245,9 @@ func RunActiveOrders() {
 			}
 			// Run elevator in the correct direction
 			if ordersOver && !(ordersUnder && stateMachine.GetDirection() == constants.DOWN) {
-				control.DirUp()
+				control.SetMotorDir(constants.DIR_UP)
 			} else if ordersUnder && !(ordersOver && stateMachine.GetDirection() == constants.UP) {
-				control.DirDown()
+				control.SetMotorDir(constants.DIR_DOWN)
 			}
 			// If we don't have any orders over or under, change direction
 			if !ordersOver && !ordersUnder {
@@ -263,7 +255,7 @@ func RunActiveOrders() {
 			}
 		} else {
 			// We have no new relevant orders
-			control.Stop()
+			control.SetMotorDir(constants.DIR_STOP)
 			stateMachine.SetState(constants.STATE_IDLE)
 		}
 	}
@@ -310,7 +302,7 @@ func InitCompleteOrder(channel_write chan formats.SimpleMessage, order formats.O
 			// Open door for the specific elevator
 			if order.Elevator == network.GetIP() {
 				// Order-being processed sequence						// TODO hva betyr denne kommentaren????
-				control.Stop()
+				control.SetMotorDir(constants.DIR_STOP)
 				stateMachine.SetState(constants.STATE_DOOR_OPEN)
 				control.SetDoorLamp(constants.ON)
 				timer := time.NewTimer(time.Second)

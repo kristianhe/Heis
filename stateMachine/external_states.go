@@ -6,7 +6,7 @@ import (
 	"fmt"
 )
 
-var filename string = "State Machine: "
+var filename string = "[State Machine] "
 var elevators []formats.Status
 
 func AddExternalElevator(elevator formats.Status) {

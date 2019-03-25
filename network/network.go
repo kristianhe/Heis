@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-var filename string = "Network: "
+var filename string = "[Network] \t"
 
 // Default ports
 var slavePort int = 30056

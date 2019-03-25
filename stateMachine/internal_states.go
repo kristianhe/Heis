@@ -91,7 +91,7 @@ func SetConnection(desiredConnection int) {
 	defer mutex.Unlock()
 	if connection != desiredConnection {
 		connection = desiredConnection
-		fmt.Println(filename, "Setting connection to", connection)
+		fmt.Println(filename, "New connection:", connection)
 	}
 }
 
@@ -100,7 +100,7 @@ func SetState(desiredState int) {
 	defer mutex.Unlock()
 	if state != desiredState {
 		state = desiredState
-		fmt.Println(filename, state, "is the new state.")
+		fmt.Println(filename, "New state:", state)
 	}
 }
 
@@ -109,7 +109,7 @@ func SetFloor(desiredFloor int) {
 	defer mutex.Unlock()
 	if floor != desiredFloor {
 		floor = desiredFloor
-		fmt.Println(filename, "Setting floor to", floor)
+		fmt.Println(filename, "New floor:", floor)
 	}
 }
 
@@ -118,7 +118,7 @@ func SetDirection(desiredDirection int) {
 	defer mutex.Unlock()
 	if direction != desiredDirection {
 		direction = desiredDirection
-		fmt.Println(filename, "Setting direction to", direction)
+		fmt.Println(filename, "New direction:", direction)
 	}
 }
 
@@ -127,7 +127,7 @@ func SetPriority(desiredPriority int) {
 	defer mutex.Unlock()
 	if priority != desiredPriority {
 		priority = desiredPriority
-		fmt.Println(filename, priority, "is the new priority.")
+		fmt.Println(filename, "New priority:", priority)
 	}
 }
 

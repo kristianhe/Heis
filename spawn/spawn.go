@@ -12,7 +12,7 @@ import (
 	"os/exec"
 )
 
-var filename string = "Spawn:"
+var filename string = "[Spawn] \t"
 
 // Main channels											// TODO revurder navn på channels... vær konsekvent
 var channel_write = make(chan formats.SimpleMessage)
@@ -68,9 +68,15 @@ func InitMaster() {
 }
 
 func generateBackup() {
-	spawnCmd := exec.Command("gnome-terminal", "-x", "go", "run", "main.go") // TODO Sjekk at main.go er riktig å skrive her
+	// Spawn backup
+	spawnCmd := exec.Command("gnome-terminal", "-x", "go", "run", "main.go")
 	spawnCmd.Run()
 	fmt.Println("A new backup has been spawned.")
+	// Spawn elevator server
+	spawnServer := exec.Command("gnome-terminal", "-x", "./ElevatorServer")
+	spawnServer.Run()
+	fmt.Println("A new elevator server has been spawned.")
+
 }
 
 func restoreMaster() {
