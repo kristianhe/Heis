@@ -2,13 +2,13 @@
 Repository for group 43 to work on the elevator project.
 
 ## Module overview
-Cases - (description here)    
-Common - Constant values and message formats  
-Control - (description here)             
-Network - (description here)    
-Orders - (description here)   
-Spawn - (description here)   
-State machine - (description here)    
+Cases:         (description here)    
+Common:        Channels, constant values and message formats  
+Control:       Communication with the hardware             
+Network:       (description here)    
+Orders:        (description here)   
+Spawn:         Start- and backup procedure   
+State machine: Keeping track of current states   
 
 
 
