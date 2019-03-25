@@ -80,6 +80,18 @@ func PrintState() string {
 	return "invalid"
 }
 
+func PrintDirection() string {
+	switch direction {
+	case constants.UP:
+		return "up"
+	case constants.DOWN:
+		return "down"
+	case constants.STOP:
+		return "stationary"
+	}
+	return "invalid"
+}
+
 func SetMaster(local_master bool) {
 	mutex.Lock()
 	defer mutex.Unlock()
@@ -91,7 +103,7 @@ func SetConnection(desiredConnection int) {
 	defer mutex.Unlock()
 	if connection != desiredConnection {
 		connection = desiredConnection
-		fmt.Println(filename, "New connection:", connection)
+		fmt.Println(filename, "New connection ->", connection)
 	}
 }
 
@@ -100,7 +112,7 @@ func SetState(desiredState int) {
 	defer mutex.Unlock()
 	if state != desiredState {
 		state = desiredState
-		fmt.Println(filename, "New state:", state)
+		fmt.Println(filename, "New state ->", PrintState())
 	}
 }
 
@@ -109,7 +121,7 @@ func SetFloor(desiredFloor int) {
 	defer mutex.Unlock()
 	if floor != desiredFloor {
 		floor = desiredFloor
-		fmt.Println(filename, "New floor:", floor)
+		fmt.Println(filename, "New floor ->", floor)
 	}
 }
 
@@ -118,7 +130,7 @@ func SetDirection(desiredDirection int) {
 	defer mutex.Unlock()
 	if direction != desiredDirection {
 		direction = desiredDirection
-		fmt.Println(filename, "New direction:", direction)
+		fmt.Println(filename, "New direction ->", PrintDirection())
 	}
 }
 
@@ -127,7 +139,7 @@ func SetPriority(desiredPriority int) {
 	defer mutex.Unlock()
 	if priority != desiredPriority {
 		priority = desiredPriority
-		fmt.Println(filename, "New priority:", priority)
+		fmt.Println(filename, "New priority ->", priority)
 	}
 }
 

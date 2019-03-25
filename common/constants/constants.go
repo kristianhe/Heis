@@ -51,11 +51,3 @@ const (
 	MESSAGE_REQUEST      = 5
 	MESSAGE_REPRIORITIZE = 6
 )
-
-type MotorDirection int
-
-const (
-	DIR_UP MotorDirection 	= 1
-	DIR_DOWN MotorDirection =-1
-	DIR_STOP MotorDirection			= 0
-)

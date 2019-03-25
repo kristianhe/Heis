@@ -30,18 +30,18 @@ func Init(addr string) {
 	isInitialized = true
 	// If between floors at startup
 	if GetFloorSignal() == constants.INVALID {
-		SetMotorDir(constants.DIR_DOWN)
+		SetMotorDir(constants.MOTOR_DOWN)
 	}
 }
 
-func SetMotorDir(dir constants.MotorDirection) {
+func SetMotorDir(dir int) {
 	mutex.Lock()
 	defer mutex.Unlock()
 	conn.Write([]byte{1, byte(dir), 0, 0})
-	if dir == constants.DIR_UP {
+	if dir == constants.MOTOR_UP {
 		stateMachine.SetDirection(constants.UP)
 		stateMachine.SetState(constants.STATE_RUNNING)
-	} else if dir == constants.DIR_DOWN {
+	} else if dir == constants.MOTOR_DOWN {
 		stateMachine.SetDirection(constants.DOWN)
 		stateMachine.SetState(constants.STATE_RUNNING)
 	}
@@ -49,9 +49,9 @@ func SetMotorDir(dir constants.MotorDirection) {
 
 func SwitchDir() {
 	if stateMachine.GetDirection() == constants.UP {
-		SetMotorDir(constants.DIR_DOWN)
+		SetMotorDir(constants.MOTOR_DOWN)
 	} else {
-		SetMotorDir(constants.DIR_UP)
+		SetMotorDir(constants.MOTOR_UP)
 	}
 }
 

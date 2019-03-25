@@ -245,9 +245,9 @@ func RunActiveOrders() {
 			}
 			// Run elevator in the correct direction
 			if ordersOver && !(ordersUnder && stateMachine.GetDirection() == constants.DOWN) {
-				control.SetMotorDir(constants.DIR_UP)
+				control.SetMotorDir(constants.MOTOR_UP)
 			} else if ordersUnder && !(ordersOver && stateMachine.GetDirection() == constants.UP) {
-				control.SetMotorDir(constants.DIR_DOWN)
+				control.SetMotorDir(constants.MOTOR_DOWN)
 			}
 			// If we don't have any orders over or under, change direction
 			if !ordersOver && !ordersUnder {
@@ -255,7 +255,7 @@ func RunActiveOrders() {
 			}
 		} else {
 			// We have no new relevant orders
-			control.SetMotorDir(constants.DIR_STOP)
+			control.SetMotorDir(constants.MOTOR_STOP)
 			stateMachine.SetState(constants.STATE_IDLE)
 		}
 	}
@@ -302,7 +302,7 @@ func InitCompleteOrder(channel_write chan formats.SimpleMessage, order formats.O
 			// Open door for the specific elevator
 			if order.Elevator == network.GetIP() {
 				// Order-being processed sequence						// TODO hva betyr denne kommentaren????
-				control.SetMotorDir(constants.DIR_STOP)
+				control.SetMotorDir(constants.MOTOR_STOP)
 				stateMachine.SetState(constants.STATE_DOOR_OPEN)
 				control.SetDoorLamp(constants.ON)
 				timer := time.NewTimer(time.Second)
