@@ -331,6 +331,7 @@ func CompleteOrder(channel_write chan formats.SimpleMessage, order formats.Order
 	<-timer.C // TODO hva er dette?
 	// Order-complete sequence
 	control.SetButtonLamp(order.Button, order.Floor, constants.OFF)
+	fmt.Println("Knapp: ", order.Button)
 	control.SetDoorLamp(constants.OFF)
 	stateMachine.SetState(constants.STATE_DOOR_CLOSED)
 	// Network messages

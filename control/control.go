@@ -14,7 +14,6 @@ var mutex sync.Mutex
 var conn net.Conn
 var floor int
 var isInitialized bool = false
-var NUM_FLOORS int = 4
 
 func Init() {
 	if isInitialized {

@@ -12,10 +12,10 @@ import (
 var filename string = "[Network] \t"
 
 // Default ports
-var slavePort int = 30056
-var masterPort int = 30057
-var backupSlavePort int = 30058
-var backupMasterPort int = 30059
+var slavePort int = 20000
+var masterPort int = 20001
+var backupSlavePort int = 20002
+var backupMasterPort int = 20003
 
 // Functions
 func GetID(sender *net.UDPAddr) formats.ID { return formats.ID(sender.IP.String()) }
@@ -37,11 +37,11 @@ func GetIP() formats.ID {
 func createSocket(port int) *net.UDPConn {
 	localAddr, err := net.ResolveUDPAddr("udp", fmt.Sprintf(":%d", port))
 	if err != nil {
-		fmt.Println("Error: ", localAddr, err)
+		fmt.Println("Error:", localAddr, err)
 	}
 	socket, err := net.ListenUDP("udp", localAddr)
 	if err != nil {
-		fmt.Println("Error: ", localAddr, err)
+		fmt.Println("Error:", localAddr, err)
 	}
 	return socket
 }
