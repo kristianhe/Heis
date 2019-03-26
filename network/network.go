@@ -1,7 +1,7 @@
 package network
 
 import (
-	formats ".././common/formats"
+	formats "../common/formats"
 
 	"encoding/json"
 	"fmt"

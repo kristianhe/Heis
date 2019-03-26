@@ -1,8 +1,8 @@
 package orders
 
 import (
-	constants ".././common/constants"
-	formats ".././common/formats"
+	constants "../common/constants"
+	formats "../common/formats"
 	"../control"
 	"../network"
 	"../stateMachine"

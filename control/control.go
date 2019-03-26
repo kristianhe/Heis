@@ -1,7 +1,7 @@
 package control
 
 import (
-	constants ".././common/constants"
+	constants "../common/constants"
 	"../stateMachine"
 
 	"fmt"
@@ -16,13 +16,13 @@ var floor int
 var isInitialized bool = false
 var NUM_FLOORS int = 4
 
-func Init(addr string) {
+func Init() {
 	if isInitialized {
-		fmt.Println("Driver already initialized!")
+		fmt.Println("Driver already initialized.")
 		return
 	}
 	var err error
-	conn, err = net.Dial("tcp", addr)
+	conn, err = net.Dial("tcp", "localhost:15657")
 	if err != nil {
 		panic(err.Error())
 	}

@@ -92,6 +92,20 @@ func PrintDirection() string {
 	return "invalid"
 }
 
+func PrintFloor() string {
+	switch floor {
+	case constants.FLOOR_FIRST:
+		return "1st"
+	case constants.FLOOR_SECOND:
+		return "2nd"
+	case constants.FLOOR_THIRD:
+		return "3rd"
+	case constants.FLOOR_LAST:
+		return "4th"
+	}
+	return "invalid"
+}
+
 func SetMaster(local_master bool) {
 	mutex.Lock()
 	defer mutex.Unlock()
@@ -121,7 +135,7 @@ func SetFloor(desiredFloor int) {
 	defer mutex.Unlock()
 	if floor != desiredFloor {
 		floor = desiredFloor
-		fmt.Println(filename, "New floor ->", floor)
+		fmt.Println(filename, "New floor ->", PrintFloor())
 	}
 }
 

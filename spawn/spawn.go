@@ -1,7 +1,7 @@
 package spawn
 
 import (
-	formats ".././common/formats"
+	formats "../common/formats"
 	"../cases"
 	"../control"
 	"../network"
@@ -45,7 +45,7 @@ func InitMaster() {
 	fmt.Println("Initializing master.")
 	fmt.Println("IP address:", network.GetIP())
 	// Control
-	control.Init("localhost:15657")
+	control.Init()
 	// Network goroutines
 	go network.BackupWarden(backupChannel_read, backupChannel_write, channel_abort)
 	go network.Warden(channel_read, channel_write, channel_abort)
