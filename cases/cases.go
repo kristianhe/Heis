@@ -20,11 +20,12 @@ var heartbeat = time.Now()
 func PollFloor(channel_floor chan formats.Floor) {
 	for {
 		polledFloor := control.GetFloorSignal()
+		// Continue of the floor is valid
 		if polledFloor != constants.INVALID {
 			var newFloor formats.Floor
 			newFloor.Current = polledFloor
 			control.SetFloorIndicator(polledFloor)
-			channel_floor <- newFloor
+			channel_floor <-newFloor
 		}
 		time.Sleep(time.Millisecond * 10)
 	}
@@ -32,9 +33,8 @@ func PollFloor(channel_floor chan formats.Floor) {
 
 func PollOrder(channel_order chan formats.Order) {
 	for {
-		// Get registered buttons and floors
 		polledOrderButton, polledOrderFloor := CheckRequestedOrders()
-		// Only go through if not invalid button                                                                             // TODO sjekk kommentarene her....
+		// Continue if all orders and floors are valid
 		if polledOrderButton != constants.INVALID && polledOrderFloor != constants.INVALID {
 			var newOrder formats.Order
 			newOrder.Elevator = network.GetIP()
@@ -53,7 +53,7 @@ func PollOrder(channel_order chan formats.Order) {
 			newOrder.Floor = polledOrderFloor
 			newOrder.Button = polledOrderButton
 			newOrder.Time = time.Now()
-			channel_order <- newOrder
+			channel_order <-newOrder
 		}
 		time.Sleep(time.Millisecond * 10)
 	}
@@ -69,7 +69,7 @@ func Heartbeater(backupChannel_write chan formats.SimpleMessage) {
 			// Define and send network messages
 			detailedMessageToSend.Category = constants.MESSAGE_HEARTBEAT
 			simpleMessageToSend.Data = network.EncodeMessage(detailedMessageToSend)
-			backupChannel_write <- simpleMessageToSend
+			backupChannel_write <-simpleMessageToSend
 		}
 		time.Sleep(time.Millisecond * 500)
 	}
@@ -81,12 +81,12 @@ func CheckHeartbeat(channel_abort, channel_init_master chan bool) {
 		if !stateMachine.IsMaster() {
 			// Calculate time
 			elapsedTime := time.Since(heartbeat)
-			elapsedTime = (elapsedTime + time.Second/2) / time.Second // TODO forstå denne....
+			elapsedTime = (elapsedTime + time.Second/2) / time.Second
 			if elapsedTime > 3 {
 				// End this goroutine
-				channel_abort <- true
+				channel_abort <-true
 				// Spawn as master
-				channel_init_master <- true
+				channel_init_master <-true
 				fmt.Println(filename, "Did not receive heartbeat. Closing socket and rebooting as master.")
 				return
 			}
@@ -98,8 +98,8 @@ func CheckHeartbeat(channel_abort, channel_init_master chan bool) {
 	}
 }
 
-// Checks if we have received a heartbeat form the local backup. Update timestamp in receive.                            // TODO Local backup? Har vi ekstern backup også??
-func CheckBackupHeartbeat(channel_init_master chan bool, backupChannel_read chan formats.SimpleMessage) { // TODO Sjekk om denne tolkningen av koken er rett...
+// Checks if we have received a heartbeat form the backup. Update timestamp in receive.
+func CheckBackupHeartbeat(channel_init_master chan bool, backupChannel_read chan formats.SimpleMessage) {
 	// Declare network messages
 	var detailedMessageReceived formats.DetailedMessage
 	var simpleMessageReceived formats.SimpleMessage
@@ -107,9 +107,8 @@ func CheckBackupHeartbeat(channel_init_master chan bool, backupChannel_read chan
 		if !stateMachine.IsMaster() {
 			select {
 			case simpleMessageReceived = <-backupChannel_read:
-				// Get message and decode
 				detailedMessageReceived = network.DecodeMessage(simpleMessageReceived.Data)
-				// Check heartbeat from main process on this computer                                                         // TODO gjør noe med denne kommentaren.. Hva betyr main process
+				// Check if the message is a heartbeat and comes from this computer
 				if detailedMessageReceived.Category == constants.MESSAGE_HEARTBEAT && simpleMessageReceived.Address == network.GetIP() {
 					resetHeartbeat()
 				}
@@ -122,7 +121,9 @@ func CheckBackupHeartbeat(channel_init_master chan bool, backupChannel_read chan
 	}
 }
 
-func resetHeartbeat() { heartbeat = time.Now() }
+func resetHeartbeat() {
+	 heartbeat = time.Now()
+ }
 
 // Broadcasts a status message to the other elevators each half second
 func Broadcaster(channel_write chan formats.SimpleMessage) {
@@ -132,21 +133,21 @@ func Broadcaster(channel_write chan formats.SimpleMessage) {
 	for {
 		if stateMachine.IsMaster() {
 			// Create status messages
-			detailedMessageToSend.Category = constants.MESSAGE_STATUS
-			detailedMessageToSend.Status.Elevator = network.GetIP()
-			detailedMessageToSend.Status.State = stateMachine.GetState()
-			detailedMessageToSend.Status.Floor = stateMachine.GetFloor()
-			detailedMessageToSend.Status.Direction = stateMachine.GetDirection()
-			detailedMessageToSend.Status.Time = time.Now()
+			detailedMessageToSend.Category 			= constants.MESSAGE_STATUS
+			detailedMessageToSend.Status.Elevator 	= network.GetIP()
+			detailedMessageToSend.Status.State 		= stateMachine.GetState()
+			detailedMessageToSend.Status.Floor 		= stateMachine.GetFloor()
+			detailedMessageToSend.Status.Direction 	= stateMachine.GetDirection()
+			detailedMessageToSend.Status.Time 		= time.Now()
 			// Encode the message and send
 			simpleMessageToSend.Data = network.EncodeMessage(detailedMessageToSend)
-			channel_write <- simpleMessageToSend
+			channel_write <-simpleMessageToSend
 		}
 		time.Sleep(time.Millisecond * 500)
 	}
 }
 
-// Listens to the network, receives messagees from the other elevators and does actions according to the message category        // TODO bør denne heller være i network-modulen
+// Listens to the network, receives messages from the other elevators and does actions according to category of the message
 func ListenToNetwork(channel_read chan formats.SimpleMessage, channel_write chan formats.SimpleMessage) {
 	// Declare network messages
 	var detailedMessageReceived formats.DetailedMessage
@@ -175,15 +176,15 @@ func ListenToNetwork(channel_read chan formats.SimpleMessage, channel_write chan
 					case constants.MESSAGE_FULFILLED:
 						// Order fulfilled by another elevator
 						fmt.Println(filename, "Order already fulfilled.")
-						orders.InitCompleteOrder(channel_write, detailedMessageReceived.Order) // TODO hva gjør egentlig denne??
+						orders.InitCompleteOrder(channel_write, detailedMessageReceived.Order)
 						break
 					case constants.MESSAGE_ORDERS:
 						fmt.Println(filename, "Order list received.")
 						// Check if this is the intended destination
 						if detailedMessageReceived.Orders.Elevator == network.GetIP() {
-							orders.SetOrders(detailedMessageReceived.Orders.List, channel_write)
+							orders.SendOrders(detailedMessageReceived.Orders.List, channel_write)
 						}
-						// Prevent reconnectiong elevator double order handling                                             // TODO hva i all verden betyr dette???
+						// Prevent the reconnecting elevator from executing double order handling
 						orders.RemoveOfflineHistory()
 						break
 					case constants.MESSAGE_REQUEST:
@@ -197,7 +198,7 @@ func ListenToNetwork(channel_read chan formats.SimpleMessage, channel_write chan
 						detailedMessageToSend.Orders.Elevator = simpleMessageReceived.Address
 						detailedMessageToSend.Orders.List = orders.GetOrders()
 						simpleMessageToSend.Data = network.EncodeMessage(detailedMessageToSend)
-						channel_write <- simpleMessageReceived
+						channel_write <-simpleMessageReceived
 						fmt.Println(filename, "Orders sent.")
 						break
 					case constants.MESSAGE_REPRIORITIZE:
@@ -214,7 +215,7 @@ func ListenToNetwork(channel_read chan formats.SimpleMessage, channel_write chan
 }
 
 // Handles cases where one or more elevators are disconnected or in state of emergency
-func SafetyCheck(channel_write chan formats.SimpleMessage) { // TODO kan sannsynligvis finne et bedre navn på denne funksjonen
+func SafeMode(channel_write chan formats.SimpleMessage) {
 	// Declare network messages
 	var detailedMessageToSend formats.DetailedMessage
 	var simpleMessageToSend formats.SimpleMessage
@@ -265,8 +266,8 @@ func SafetyCheck(channel_write chan formats.SimpleMessage) { // TODO kan sannsyn
 					// Define the network message and send it
 					detailedMessageToSend.Category = constants.MESSAGE_REPRIORITIZE
 					simpleMessageToSend.Data = network.EncodeMessage(detailedMessageToSend)
-					channel_write <- simpleMessageToSend
-					fmt.Println(filename, "Request for repriorization sent.")
+					channel_write <-simpleMessageToSend
+					fmt.Println(filename, "STATE OF EMERGENCY! Request for repriorization sent.")
 				}
 			}
 		}
@@ -277,7 +278,7 @@ func SafetyCheck(channel_write chan formats.SimpleMessage) { // TODO kan sannsyn
 func CheckRequestedOrders() (int, int) {
 	for floor := 0; floor < constants.FLOORS; floor++ {
 		for button := 0; button < constants.BUTTONS; button++ {
-			if control.GetButtonSignal(button, floor) == true { // TODO stor sjanse for at det er noe feil med denne. Den er omgjort fra en int til en bool
+			if control.GetButtonSignal(button, floor) == true {
 				return button, floor
 			}
 		}
