@@ -14,19 +14,17 @@ import (
 
 var filename string = "[Spawn] \t"
 
-// Main channels											// TODO revurder navn på channels... vær konsekvent
-var channel_write = make(chan formats.SimpleMessage)
-var channel_read = make(chan formats.SimpleMessage)
-
-// Backup channels
+// Network channels
+var channel_write 		= make(chan formats.SimpleMessage)
+var channel_read 		= make(chan formats.SimpleMessage)
 var backupChannel_write = make(chan formats.SimpleMessage)
-var backupChannel_read = make(chan formats.SimpleMessage)
+var backupChannel_read 	= make(chan formats.SimpleMessage)
 
 // Toggle channels
 var channel_init_master = make(chan bool)
-var channel_abort = make(chan bool)
+var channel_abort 		= make(chan bool)
 
-// Order channels
+// Order and floor channels
 var channel_order = make(chan formats.Order)
 var channel_floor = make(chan formats.Floor)
 
@@ -44,21 +42,22 @@ func InitBackup() {
 func InitMaster() {
 	fmt.Println("Initializing master.")
 	fmt.Println("IP address:", network.GetIP())
-	// Control
+	// Initialize control for hardware
 	control.Init()
-	// Network goroutines
+	// Start goroutines for network communication
 	go network.BackupWarden(backupChannel_read, backupChannel_write, channel_abort)
 	go network.Warden(channel_read, channel_write, channel_abort)
 	go network.Coordinator(channel_read, channel_write, channel_abort)
-	// Backup
+	// Spawn backup
 	generateBackup()
 	// Update state machine
 	stateMachine.SetMaster(true)
-	// Case goroutines
+	// Start goroutines for polling floors and orders
 	go cases.PollFloor(channel_floor)
 	go cases.PollOrder(channel_order)
+	// Start goroutine for order handling
 	go orders.Handle(channel_floor, channel_order, channel_write)
-	// Listener and broadcaster
+	// Start goroutines for broadcasting and listening
 	go cases.Broadcaster(channel_write)
 	go cases.ListenToNetwork(channel_read, channel_write)
 	go cases.Heartbeater(backupChannel_write)
@@ -68,15 +67,14 @@ func InitMaster() {
 }
 
 func generateBackup() {
-	// Spawn backup
-	spawnCmd := exec.Command("gnome-terminal", "-x", "go", "run", "main.go")
-	spawnCmd.Run()
+	// Spawn backup in new terminal
+	spawnBackup := exec.Command("gnome-terminal", "-x", "go", "run", "main.go")
+	spawnBackup.Run()
 	fmt.Println("A new backup has been spawned.")
-	// Spawn elevator server
+	// Spawn elevator server in new terminal
 	spawnServer := exec.Command("gnome-terminal", "-x", "./ElevatorServer")
 	spawnServer.Run()
 	fmt.Println("A new elevator server has been spawned.")
-
 }
 
 func restoreMaster() {
