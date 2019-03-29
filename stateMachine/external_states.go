@@ -9,7 +9,7 @@ import (
 var filename string = "[State Machine] "
 var elevators []formats.Status
 
-func AddExternalElevator(elevator formats.Status) {
+func addExternalElevator(elevator formats.Status) {
 	fmt.Println("Adding elevator", elevator.Elevator)
 	mutex.Lock()
 	defer mutex.Unlock()
@@ -18,7 +18,7 @@ func AddExternalElevator(elevator formats.Status) {
 
 func RemoveExternalElevator(elevator formats.Status) {
 	localElevators := GetExternalElevators()
-	// Check if we have elevators
+	// Check if the list is emtpy
 	if len(localElevators) > 0 {
 		for index := range localElevators {
 			if localElevators[index].Elevator == elevator.Elevator {
@@ -26,7 +26,6 @@ func RemoveExternalElevator(elevator formats.Status) {
 				elevators = elevators[:index+copy(elevators[index:], elevators[index+1:])]
 				mutex.Unlock()
 				fmt.Println(elevator.Elevator, "is removed.")
-				// To prevent out of bounds and panic
 				break
 			}
 		}
@@ -36,10 +35,10 @@ func RemoveExternalElevator(elevator formats.Status) {
 func UpdateExternalElevator(new formats.Status) {
 	isFound := false
 	localElevators := GetExternalElevators()
-	// Check if we have elevators
+	// Check if the list is emtpy
 	if len(localElevators) > 0 {
 		for index := range localElevators {
-			// Check if elevator exists
+			// Check if the elevator is in the list
 			if localElevators[index].Elevator == new.Elevator {
 				mutex.Lock()
 				elevators[index].State = new.State
@@ -52,31 +51,18 @@ func UpdateExternalElevator(new formats.Status) {
 		}
 	}
 	if !isFound {
-		AddExternalElevator(new)
+		addExternalElevator(new)
 	}
 }
 
 func GetExternalElevators() []formats.Status {
 	mutex.Lock()
 	defer mutex.Unlock()
-	// Create a copy to prevent data races
+	// Create a copy to prevent race conditions
 	copy := make([]formats.Status, len(elevators), len(elevators))
-	// Need to manually copy all variables (the library function "copy" will not do)
+	// Copy all variables
 	for id, elem := range elevators {
 		copy[id] = elem
 	}
 	return copy
-}
-
-func CheckIfExternalElevatorExists(elevator formats.Status) bool {
-	localElevators := GetExternalElevators()
-	// Check if we have elevators
-	if len(localElevators) > 0 {
-		for index := range localElevators {
-			if localElevators[index].Elevator == elevator.Elevator {
-				return true
-			}
-		}
-	}
-	return false
 }
