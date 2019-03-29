@@ -31,7 +31,7 @@ var channel_floor = make(chan formats.Floor)
 func InitBackup() {
 	fmt.Println("Backup routine has started.")
 	// Start goroutines for backup
-	go network.BackupCoordinator(backupChannel_read, backupChannel_write, channel_abort)
+	go network.BackupListener(backupChannel_read, channel_abort)
 	// Start goroutines for heartbeat
 	go cases.CheckHeartbeat(channel_abort, channel_init_master)
 	go cases.CheckBackupHeartbeat(channel_init_master, backupChannel_read)
@@ -45,9 +45,9 @@ func InitMaster() {
 	// Initialize control for hardware
 	control.Init()
 	// Start goroutines for network communication
-	go network.BackupWarden(backupChannel_read, backupChannel_write, channel_abort)
-	go network.Warden(channel_read, channel_write, channel_abort)
-	go network.Coordinator(channel_read, channel_write, channel_abort)
+	go network.BackupCoordinator(backupChannel_write, channel_abort)
+	go network.MasterCoordinator(channel_read, channel_write, channel_abort)
+	go network.SlaveCoordinator(channel_read, channel_write, channel_abort)
 	// Spawn backup
 	generateBackup()
 	// Update state machine
@@ -61,7 +61,7 @@ func InitMaster() {
 	go cases.Broadcaster(channel_write)
 	go cases.ListenToNetwork(channel_read, channel_write)
 	go cases.Heartbeater(backupChannel_write)
-	go cases.SafetyCheck(channel_write)
+	go cases.SafeMode(channel_write)
 	// Catch ctrl+c termination and stop the elevator
 	go cases.ExitHandler()
 }
