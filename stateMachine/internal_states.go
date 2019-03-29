@@ -80,18 +80,6 @@ func PrintState() string {
 	return "invalid"
 }
 
-func PrintDirection() string {
-	switch direction {
-	case constants.UP:
-		return "up"
-	case constants.DOWN:
-		return "down"
-	case constants.STOP:
-		return "stationary"
-	}
-	return "invalid"
-}
-
 func PrintFloor() string {
 	switch floor {
 	case constants.FLOOR_FIRST:
@@ -106,10 +94,22 @@ func PrintFloor() string {
 	return "invalid"
 }
 
-func SetMaster(local_master bool) {
+func PrintDirection() string {
+	switch direction {
+	case constants.UP:
+		return "up"
+	case constants.DOWN:
+		return "down"
+	case constants.STOP:
+		return "stationary"
+	}
+	return "invalid"
+}
+
+func SetMaster(value bool) {
 	mutex.Lock()
 	defer mutex.Unlock()
-	master = local_master
+	master = value
 }
 
 func SetConnection(desiredConnection int) {
