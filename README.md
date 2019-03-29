@@ -1,7 +1,7 @@
 # Elevated students
 Elevator project in TTK4145 Real-time programming.
 ## Module overview
-Cases:        \t Polling, heartbeat, safemode and more      
+Cases:         Polling, heartbeat, safemode and more      
 Common:        Channels, constant values and message formats    
 Control:       Communication with hardware              
 Network:       Master-slave communication and UDP broadcasting  
