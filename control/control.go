@@ -10,10 +10,10 @@ import (
 )
 
 var filename string = "[Control] \t"
-var mutex sync.Mutex
-var conn net.Conn
-var floor int
 var isInitialized bool = false
+var conn net.Conn
+var mutex sync.Mutex
+var floor int
 
 func Init() {
 	if isInitialized {
@@ -21,6 +21,7 @@ func Init() {
 		return
 	}
 	var err error
+	// Set up communication with hardware through TCP
 	conn, err = net.Dial("tcp", "localhost:15657")
 	if err != nil {
 		panic(err.Error())
@@ -57,6 +58,7 @@ func SwitchDir() {
 func ClearLights() {
 	for floor := 0; floor < constants.FLOORS; floor++ {
 		for button := 0; button < constants.BUTTONS; button++ {
+			// Skip the buttons that don't exist
 			if (floor == 0 && button == constants.BUTTON_DOWN)||(floor == 3 && button == constants.BUTTON_UP) {
 				continue
 			}
@@ -133,7 +135,9 @@ func GetFloorSignal() int {
 	var buffer [4]byte
 	conn.Read(buffer[:])
 	// Return current floor
-	if buffer[1] != 0 	{	return int(buffer[2])	}
+	if buffer[1] != 0 {
+		return int(buffer[2])
+	}
 	return constants.INVALID
 }
 
