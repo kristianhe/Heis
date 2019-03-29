@@ -10,7 +10,7 @@ const (
 	CONNECTED    = 1
 	EQUALS       = 0
 	ELEVATORS    = 2
-	INVALID      = -1
+	INVALID      =-1
 	STOP         = 0
 	UP           = 2
 	DOWN         = 1
@@ -26,7 +26,7 @@ const (
 	FLOOR_THIRD  = 2
 	FLOOR_LAST   = 3
 
-	BUTTON_INVALID     = -1
+	BUTTON_INVALID     =-1
 	BUTTON_UP          = 0
 	BUTTON_DOWN        = 1
 	BUTTON_INSIDE      = 2
@@ -34,7 +34,7 @@ const (
 	BUTTON_STOP        = 4
 	BUTTON_OBSTRUCTION = 5
 
-	STATE_INVALID     = -1
+	STATE_INVALID     =-1
 	STATE_STARTUP     = 0
 	STATE_IDLE        = 1
 	STATE_RUNNING     = 2
@@ -42,7 +42,7 @@ const (
 	STATE_DOOR_OPEN   = 4
 	STATE_DOOR_CLOSED = 5
 
-	MESSAGE_INVALID      = -1
+	MESSAGE_INVALID      =-1
 	MESSAGE_HEARTBEAT    = 0
 	MESSAGE_STATUS       = 1
 	MESSAGE_ORDER        = 2
