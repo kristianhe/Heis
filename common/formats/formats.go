@@ -16,7 +16,7 @@ type DetailedMessage struct {
 	Heartbeat 	Heartbeat
 	Status    	Status
 	Order     	Order
-	Orders 			Orders
+	Orders 		Orders
 }
 
 type Status struct {
@@ -25,7 +25,7 @@ type Status struct {
 	Floor     	int
 	Direction 	int
 	Priority  	int
-	Time				time.Time
+	Time		time.Time
 }
 
 type Order struct {
@@ -49,7 +49,7 @@ type Floor struct {
 
 type Priority struct {
 	Elevator 	ID
-	Queue    	int // Place in queue
+	Queue    	int
 }
 
 type Heartbeat struct {
