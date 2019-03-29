@@ -60,7 +60,6 @@ func GetExternalElevators() []formats.Status {
 	defer mutex.Unlock()
 	// Create a copy to prevent race conditions
 	copy := make([]formats.Status, len(elevators), len(elevators))
-	// Copy all variables
 	for id, elem := range elevators {
 		copy[id] = elem
 	}
